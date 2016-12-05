@@ -46,7 +46,7 @@ class DocsetManager (object):
 		feeds = self.__getDocsetFeeds()
 		onlineDocsets = []
 		for f in feeds:
-			obj = {'name':f['name'],'status':'online'}
+			obj = {'name':f['name'],'status':'online','url':f['feedUrl']}
 			onlineDocsets.append(obj)
 		return onlineDocsets
 	
@@ -57,8 +57,8 @@ class DocsetManager (object):
 			name = '.NET Framework'
 		return name
 	
-	def downloadDocset(self, name, version):
-		pass
+	def downloadDocset(self, docset):
+		print('Download: ' + docset['name'])
 				
 if __name__ == '__main__':
 	dm = DocsetManager()

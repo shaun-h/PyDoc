@@ -2,8 +2,9 @@
 import ui
 
 class DocsetManagementView (object):
-	def __init__(self, docsets):
+	def __init__(self, docsets, download_action):
 		self.data = docsets
+		self.download_action = download_action
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -42,13 +43,13 @@ class DocsetManagementView (object):
 		button.height = height * 0.9
 		button.width = button.height * ratio
 		ca = CustomAction(button)
-		ca.action = action
+		ca.action = self.action
 		ca.row = row
 		button.action = ca
 		return button
 		
 	def action(self, sender):
-		print(sender.action.row)
+		self.download_action(sender.action.row)
 		
 class CustomAction(object):
 	def __init__(self, parent):
@@ -62,11 +63,11 @@ class CustomAction(object):
 	def real_action(self, sender):
 		print('Did you need to set the action?')
 		
-def get_view(docsets):
+def get_view(docsets, download_action):
 	w,h = ui.get_screen_size()
 	tv = ui.TableView()
 	tv.flex = 'WH'
-	data = DocsetManagementView(docsets)
+	data = DocsetManagementView(docsets, download_action)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
