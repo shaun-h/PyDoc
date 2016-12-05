@@ -1,3 +1,4 @@
+
 import ui
 
 class DocsetManagementView (object):
@@ -18,11 +19,11 @@ class DocsetManagementView (object):
 		cell = ui.TableViewCell('subtitle')
 		cell.text_label.text = self.data[row]['name']
 		cell.detail_text_label.text = status
-		iv = self.__getDetailImageViewForStatus(status, cell.content_view.height)
+		iv = self.__getDetailImageViewForStatus(status, cell.height)
+		iv.x = cell.content_view.width - (iv.width * 1.5)
+		iv.y = (cell.content_view.height) - (iv.height * 1.05)
+		iv.flex = 'L'
 		cell.content_view.add_subview(iv)
-		iv.x = cell.content_view.width + iv.width
-		iv.y = (cell.content_view.height /2)-(iv.height/2.1)
-		
 		return cell
 	
 	def __getDetailImageForStatus(self, status):
@@ -42,12 +43,15 @@ class DocsetManagementView (object):
 		return iv
 		
 def get_view(docsets):
+	w,h = ui.get_screen_size()
 	tv = ui.TableView()
+	tv.flex = 'WH'
 	data = DocsetManagementView(docsets)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
 
 if __name__ == '__main__':
-	view = get_view([])
+	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
 	view.present()
+
