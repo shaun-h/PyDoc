@@ -2,9 +2,11 @@
 import ui
 
 class DocsetManagementView (object):
-	def __init__(self, docsets, download_action):
+	def __init__(self, docsets, download_action, refresh_docsets_action):
 		self.data = docsets
 		self.download_action = download_action
+		self.refresh_docsets_action = refresh_docsets_action
+		
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -50,6 +52,11 @@ class DocsetManagementView (object):
 		
 	def action(self, sender):
 		self.download_action(sender.action.row)
+		self.refresh()
+	
+	def refresh(self):
+		self.data = self.refresh_docsets_action()
+		tv.reload()
 		
 class CustomAction(object):
 	def __init__(self, parent):
@@ -62,16 +69,15 @@ class CustomAction(object):
 		
 	def real_action(self, sender):
 		print('Did you need to set the action?')
-		
-def get_view(docsets, download_action):
+
+tv = ui.TableView()
+def get_view(docsets, download_action, refresh_docsets_action):
 	w,h = ui.get_screen_size()
-	tv = ui.TableView()
 	tv.flex = 'WH'
-	data = DocsetManagementView(docsets, download_action)
+	data = DocsetManagementView(docsets, download_action, refresh_docsets_action)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
-	
 	
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
