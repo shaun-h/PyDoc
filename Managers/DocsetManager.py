@@ -1,5 +1,6 @@
 import json
 import os
+import ui
 
 class Docset(object):
 	def __init__(self):
@@ -7,10 +8,11 @@ class Docset(object):
 		self.downloaded = False
 		
 class DocsetManager (object):
-	def __init__(self):
+	def __init__(self, iconPath):
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets'
+		self.iconPath = iconPath
 		self.__createDocsetFolder()
 		self.docsetFeeds = self.__getDocsetFeeds()
 		
@@ -33,6 +35,7 @@ class DocsetManager (object):
 				if feed['feed'] == 'SproutCore.xml':
 					f['isCustom'] = True
 					f['feedUrl'] = 'http://docs.sproutcore.com/feeds/' + feed['feed']
+				f['image'] = self.__getIconWithName(feed['icon'])
 				feeds.append(f)
 			return feeds
 		
@@ -78,6 +81,11 @@ class DocsetManager (object):
 		if name == 'NET Framework':
 			name = '.NET Framework'
 		return name
+	
+	def __getIconWithName(self, name):
+		
+		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
+		return ui.Image.named(imgPath)
 	
 	def downloadDocset(self, docset):
 		if not docset in self.downloading:

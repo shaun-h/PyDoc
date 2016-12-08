@@ -22,6 +22,8 @@ class DocsetManagementView (object):
 		cell = ui.TableViewCell('subtitle')
 		cell.text_label.text = self.data[row]['name']
 		cell.detail_text_label.text = status
+		if not self.data[row]['image'] == None:
+			cell.image_view.image = self.data[row]['image']
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
 		iv.x = cell.content_view.width - (iv.width * 1.5)
 		iv.y = (cell.content_view.height) - (iv.height * 1.05)
@@ -73,6 +75,8 @@ class CustomAction(object):
 tv = ui.TableView()
 def get_view(docsets, download_action, refresh_docsets_action):
 	w,h = ui.get_screen_size()
+	tv.width = w
+	tv.height = h
 	tv.flex = 'WH'
 	data = DocsetManagementView(docsets, download_action, refresh_docsets_action)
 	tv.delegate = data
