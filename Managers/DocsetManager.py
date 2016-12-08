@@ -40,21 +40,15 @@ class DocsetManager (object):
 			return feeds
 		
 	def getAvailableDocsets(self):
-		docsets = self.__getDownloadedDocsets()
+		docsets = self.__getOnlineDocsets()
 		for d in self.__getDownloadingDocsets():
-			add = True
 			for c in docsets:
 				if c['name'] == d['name']:
-					add = False
-			if add:
-				docsets.append(d)
-		for d in self.__getOnlineDocsets():
-			add = True
+					c['status'] = d['status']
+		for d in self.__getDownloadedDocsets():
 			for c in docsets:
 				if c['name'] == d['name']:
-					add = False
-			if add:
-				docsets.append(d)
+					c['status'] = d['status']
 		return docsets
 	
 	def __docsetFeedToDocset(self, feed):
