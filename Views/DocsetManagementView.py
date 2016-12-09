@@ -78,6 +78,7 @@ def get_view(docsets, download_action, refresh_docsets_action):
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
+	tv.name = 'Settings'
 	data = DocsetManagementView(docsets, download_action, refresh_docsets_action)
 	tv.delegate = data
 	tv.data_source = data
