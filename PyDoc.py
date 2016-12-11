@@ -1,5 +1,5 @@
 from Managers import DocsetManager
-from Views import DocsetManagementView
+from Views import DocsetManagementView, SettingsView
 import ui
 
 class PyDoc(object):
@@ -8,6 +8,7 @@ class PyDoc(object):
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons')
 		self.management_view = self.setup_management_view()
+		self.settings_view = self.setup_settings_view()
 		
 	def setup_navigation_view(self):
 		nav_view = ui.NavigationView(self.main_view)
@@ -16,7 +17,7 @@ class PyDoc(object):
 	def setup_main_view(self):
 		main_view = ui.View(name='PyDoc')
 		settings_button = ui.ButtonItem(title='Settings')
-		settings_button.action = self.show_management_view
+		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
 		return main_view
 
@@ -24,8 +25,11 @@ class PyDoc(object):
 		docsets = self.docset_manager.getAvailableDocsets()
 		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets)
 		
-	def show_management_view(self, sender):
-		self.navigation_view.push_view(self.management_view)
+	def setup_settings_view(self):
+		return SettingsView.get_view(self.management_view)
+		
+	def show_settings_view(self, sender):
+		self.navigation_view.push_view(self.settings_view)
 	
 		
 if __name__ == '__main__':
