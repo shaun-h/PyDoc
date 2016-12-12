@@ -2,7 +2,7 @@ import ui
 	
 class SettingsView (object):
 	def __init__(self, management_view):
-		self.data = ['Manage Docsets']
+		self.data = ['Standard Docsets']
 		self.manage_docset_row = [0,0]
 		self.management_view = management_view
 		
@@ -24,7 +24,7 @@ class SettingsView (object):
 		return cell
 	
 	def tableview_title_for_header(self, tableview, section):
-		return 'Docsets'
+		return 'Manage Docsets'
 
 tv = ui.TableView('grouped')
 def get_view(management_view):
