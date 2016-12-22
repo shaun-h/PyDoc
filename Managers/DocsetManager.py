@@ -1,6 +1,7 @@
 import json
 import os
 import ui
+#import ServerManager
 
 class Docset(object):
 	def __init__(self):
@@ -8,13 +9,14 @@ class Docset(object):
 		self.downloaded = False
 		
 class DocsetManager (object):
-	def __init__(self, iconPath):
+	def __init__(self, iconPath, serverManager):
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets'
 		self.iconPath = iconPath
 		self.__createDocsetFolder()
 		self.docsetFeeds = self.__getDocsetFeeds()
+		self.serverManager = serverManager
 		
 	def __createDocsetFolder(self):
 		if not os.path.exists(self.docsetFolder):
@@ -85,6 +87,12 @@ class DocsetManager (object):
 		if not docset in self.downloading:
 			docset['status'] = 'downloading'
 			self.downloading.append(docset)
+			self.__getDownloadLink(docset['feed'])
+	
+	def __getDownloadLink(self, link):
+		server = self.serverManager.getDownloadServer()
+		print(server.url+link)
+		
 		
 				
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from Managers import DocsetManager
+from Managers import DocsetManager, ServerManager
 from Views import DocsetManagementView, SettingsView
 import ui
 
@@ -6,7 +6,7 @@ class PyDoc(object):
 	def __init__(self):
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
-		self.docset_manager = DocsetManager.DocsetManager('Images/icons')
+		self.docset_manager = DocsetManager.DocsetManager('Images/icons', ServerManager.ServerManager())
 		self.management_view = self.setup_management_view()
 		self.settings_view = self.setup_settings_view()
 		
