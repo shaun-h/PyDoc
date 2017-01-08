@@ -24,6 +24,7 @@ class DocsetView (object):
 	
 tv = ui.TableView()
 def get_view(docsets, types):
+	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
