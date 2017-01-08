@@ -58,6 +58,10 @@ class DocsetManager (object):
 		
 	def getAvailableDocsets(self):
 		docsets = self.__getOnlineDocsets()
+		for d in self.__getDownloadedDocsets():
+			for c in docsets:
+				if c['name'] == d:
+					c['status'] = 'installed'
 		for d in self.__getDownloadingDocsets():
 			for c in docsets:
 				if c['name'] == d['name']:
@@ -66,11 +70,15 @@ class DocsetManager (object):
 						c['stats'] = d['stats']
 					except KeyError:
 						c['stats'] = 'downloading'
-		for d in self.__getDownloadedDocsets():
-			for c in docsets:
-				if c['name'] == d:
-					c['status'] = 'Downloaded'
 		return docsets
+	
+	def getDownloadedDocsets(self):
+		ds = []
+		for dd in self.__getDownloadedDocsets():
+			for feed in self.docsetFeeds:
+				if dd == feed['name']:
+					ds.append(feed)
+		return ds
 	
 	def __docsetFeedToDocset(self, feed):
 		return feed
@@ -84,13 +92,6 @@ class DocsetManager (object):
 				os.path.join(folder,dir, self.plistPath))
 				ds.append(pl['CFBundleName'])
 		return ds
-		
-	def etree_to_dict(self, t):
-		print(t)
-		d = {t.tag : map(self.etree_to_dict, t.iter())}
-		d.update(('@' + k, v) for k, v in t.attrib.iter())
-		d['text'] = t.text
-		return d
 
 	def __getDownloadingDocsets(self):
 		return self.downloading
@@ -126,7 +127,7 @@ class DocsetManager (object):
 			workThread.start()
 			
 	def __determineUrlAndDownload(self, docset, action):
-		docset['stats'] = 'Getting download link'
+		docset['stats'] = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(docset['feed'])
 		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,docset,))
@@ -163,11 +164,11 @@ class DocsetManager (object):
 					f.write(chunk)
 					done = 100 * dl / int(total_length)
 					docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
-		docset['status'] = 'Downloaded'
+		docset['status'] = 'waiting for install'
 		self.installDocset(local_filename, docset)
 	
 	def installDocset(self, filename, docset):
-		docset['status'] = 'Installing'
+		docset['status'] = 'installing'
 		tar = tarfile.open(filename, 'r:gz')
 		tar.extractall(path=self.docsetFolder)
 		tar.close()
@@ -175,11 +176,11 @@ class DocsetManager (object):
 		self.indexDocset(docset)
 	
 	def indexDocset(self, docset):
-		docset['status'] = 'Indexing'
+		docset['status'] = 'indexing'
 		self.postProcess(docset)
 		
 	def postProcess(self, docset):
-		docset['status'] = 'Downloaded'
+		docset['status'] = 'installed'
 
 	def convertSize(self, size):
 		if (size == 0):
