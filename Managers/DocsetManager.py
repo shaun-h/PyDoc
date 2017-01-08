@@ -9,7 +9,7 @@ import time
 import math
 import tarfile
 import plistlib
-
+import sqlite3
 
 class Docset(object):
 	def __init__(self):
@@ -22,6 +22,7 @@ class DocsetManager (object):
 		self.downloading = []
 		self.docsetFolder = 'Docsets'
 		self.plistPath = 'Contents/Info.plist'
+		self.indexPath = 'Contents/Resources/docSet.dsidx'
 		self.iconPath = iconPath
 		self.headers = {
     'User-Agent': 'PyDoc-Pythonista'
@@ -60,8 +61,9 @@ class DocsetManager (object):
 		docsets = self.__getOnlineDocsets()
 		for d in self.__getDownloadedDocsets():
 			for c in docsets:
-				if c['name'] == d:
+				if c['name'] == d['name']:
 					c['status'] = 'installed'
+					c['path'] = d['path']
 		for d in self.__getDownloadingDocsets():
 			for c in docsets:
 				if c['name'] == d['name']:
@@ -76,7 +78,8 @@ class DocsetManager (object):
 		ds = []
 		for dd in self.__getDownloadedDocsets():
 			for feed in self.docsetFeeds:
-				if dd == feed['name']:
+				if dd['name'] == feed['name']:
+					feed['path'] = dd['path']
 					ds.append(feed)
 		return ds
 	
@@ -90,7 +93,7 @@ class DocsetManager (object):
 			if os.path.isdir(os.path.join(folder,dir)):
 				pl = plistlib.readPlist(
 				os.path.join(folder,dir, self.plistPath))
-				ds.append(pl['CFBundleName'])
+				ds.append({'name':pl['CFBundleName'],'path':os.path.join(folder,dir)})
 		return ds
 
 	def __getDownloadingDocsets(self):
@@ -190,7 +193,20 @@ class DocsetManager (object):
 		p = math.pow(1024,i)
 		s = round(size/p,2)
 		return '%s %s' % (s,size_name[i])
-				
+	
+	def getTypesForDocset(self, docset):
+		types = []
+		path = docset['path']
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT type FROM searchIndex GROUP BY type'
+		c = conn.execute(sql)
+		data = c.fetchall()
+		conn.close()
+		for t in data:
+			types.append({'name':t[0], 'image':None})
+		return types
+		
 if __name__ == '__main__':
 	dm = DocsetManager()
 	print(dm.getAvailableDocsets())

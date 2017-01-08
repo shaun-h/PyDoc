@@ -1,5 +1,5 @@
 from Managers import DocsetManager, ServerManager
-from Views import DocsetManagementView, SettingsView, DocsetListView
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView
 import ui
 
 class PyDoc(object):
@@ -33,7 +33,9 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.settings_view)
 	
 	def docset_selected_for_viewing(self, docset):
-		print(docset)
+		types = self.docset_manager.getTypesForDocset(docset)
+		view = DocsetView.get_view(docset, types)
+		self.navigation_view.push_view(view)
 	
 		
 if __name__ == '__main__':
