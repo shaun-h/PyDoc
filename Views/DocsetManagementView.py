@@ -21,7 +21,10 @@ class DocsetManagementView (object):
 		status = self.data[row]['status']
 		cell = ui.TableViewCell('subtitle')
 		cell.text_label.text = self.data[row]['name']
-		cell.detail_text_label.text = status
+		if not status == 'downloading':
+			cell.detail_text_label.text = status
+		else:
+			cell.detail_text_label.text = self.data[row]['stats']
 		if not self.data[row]['image'] == None:
 			cell.image_view.image = self.data[row]['image']
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
@@ -53,8 +56,8 @@ class DocsetManagementView (object):
 		return button
 		
 	def action(self, sender):
-		self.download_action(sender.action.row)
-		self.refresh()
+		self.download_action(sender.action.row, self.refresh)
+		#self.refresh()
 	
 	def refresh(self):
 		self.data = self.refresh_docsets_action()

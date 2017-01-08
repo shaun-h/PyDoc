@@ -26,6 +26,9 @@ class Server (object):
 		
 class ServerManager (object):
 	def __init__(self):
+		self.headers = {
+    'User-Agent': 'PyDoc-Pythonista'
+    }
 		self.__servers = []
 		self.__dynamicServers = []
 		self.__setupDefaultServers()
@@ -75,7 +78,7 @@ class ServerManager (object):
 		if not urlToTest.endswith('/'):
 			urlToTest=urlToTest+'/'
 		urlToTest = urlToTest+'latencyTest_v2.txt'
-		req = requests.get(urlToTest)
+		req = requests.get(urlToTest, headers=self.headers)
 		timeafter = time()
 		if req.status_code == 200:
 			loc = req.text.find('Extra mirrors: ') 
