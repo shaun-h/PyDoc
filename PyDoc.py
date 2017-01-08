@@ -16,7 +16,7 @@ class PyDoc(object):
 
 	def setup_main_view(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
-		main_view = DocsetListView.get_view(docsets)
+		main_view = DocsetListView.get_view(docsets, self.docset_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -31,6 +31,9 @@ class PyDoc(object):
 		
 	def show_settings_view(self, sender):
 		self.navigation_view.push_view(self.settings_view)
+	
+	def docset_selected_for_viewing(self, docset):
+		print(docset)
 	
 		
 if __name__ == '__main__':
