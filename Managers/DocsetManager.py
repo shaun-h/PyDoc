@@ -17,13 +17,14 @@ class Docset(object):
 		self.downloaded = False
 		
 class DocsetManager (object):
-	def __init__(self, iconPath, serverManager):
+	def __init__(self, iconPath, typeIconPath, serverManager):
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
 		self.iconPath = iconPath
+		self.typeIconPath = typeIconPath
 		self.headers = {
     'User-Agent': 'PyDoc-Pythonista'
     }
@@ -93,7 +94,10 @@ class DocsetManager (object):
 			if os.path.isdir(os.path.join(folder,dir)):
 				pl = plistlib.readPlist(
 				os.path.join(folder,dir, self.plistPath))
-				ds.append({'name':pl['CFBundleName'],'path':os.path.join(folder,dir)})
+				name = pl['CFBundleName']
+				if name == 'Sails.js':
+					name = 'SailsJS'
+				ds.append({'name':name,'path':os.path.join(folder,dir)})
 		return ds
 
 	def __getDownloadingDocsets(self):

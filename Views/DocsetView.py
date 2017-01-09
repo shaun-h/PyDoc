@@ -33,4 +33,5 @@ def get_view(docsets, types):
 	data = DocsetView(docsets, types)
 	tv.delegate = data
 	tv.data_source = data
+	tv.name = docsets['name']
 	return tv

@@ -4,7 +4,7 @@ import ui
 
 class PyDoc(object):
 	def __init__(self):
-		self.docset_manager = DocsetManager.DocsetManager('Images/icons', ServerManager.ServerManager())
+		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.management_view = self.setup_management_view()
