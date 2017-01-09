@@ -1,12 +1,16 @@
 
 import ui
+import os
 
 class DocsetIndexView (object):
-	def __init__(self, docset, indexes):
+	def __init__(self, docset, indexes, indexSelectCallback):
 		self.data = indexes
+		self.docset = docset
+		self.indexSelectCallback = indexSelectCallback
 		
 	def tableview_did_select(self, tableview, section, row):
-		pass
+		url = 'file://' + os.path.join(self.docset['path'], 'Contents/Resources/Documents', self.data[row]['path'])
+		self.indexSelectCallback(url)
 		
 	def tableview_number_of_sections(self, tableview):
 		return 1
@@ -23,14 +27,14 @@ class DocsetIndexView (object):
 		return cell
 	
 tv = ui.TableView()
-def get_view(docsets, indexes):
+def get_view(docsets, indexes, indexSelectCallback):
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetIndexView(docsets, indexes)
+	data = DocsetIndexView(docsets, indexes, indexSelectCallback)
 	tv.delegate = data
 	tv.data_source = data
 	tv.name = docsets['name']
