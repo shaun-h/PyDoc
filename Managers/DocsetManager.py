@@ -97,6 +97,8 @@ class DocsetManager (object):
 				name = pl['CFBundleName']
 				if name == 'Sails.js':
 					name = 'SailsJS'
+				elif name == 'Backbone.js':
+					name = 'BackboneJS'
 				ds.append({'name':name,'path':os.path.join(folder,dir)})
 		return ds
 
