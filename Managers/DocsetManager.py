@@ -215,6 +215,32 @@ class DocsetManager (object):
 		for t in data:
 			types.append({'name':t[0], 'image':self.__getTypeIconWithName(t[0])})
 		return types
+	
+	def getIndexesbyTypeForDocset(self, docset, type):
+		indexes = []
+		path = docset['path']
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type['name'] + '\''
+		c = conn.execute(sql)
+		data = c.fetchall()
+		conn.close()
+		for t in data:
+			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+		return indexes
+	
+	def getIndexesForDocset(self, docset):
+		indexes = []
+		path = docset['path']
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT type, name, path FROM searchIndex'
+		c = conn.execute(sql)
+		data = c.fetchall()
+		conn.close()
+		for i in data:
+			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+		return types
 		
 if __name__ == '__main__':
 	dm = DocsetManager()

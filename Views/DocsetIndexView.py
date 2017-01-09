@@ -1,14 +1,12 @@
 
 import ui
 
-class DocsetView (object):
-	def __init__(self, docset, types, indexSelectCallback):
-		self.data = types
-		self.docset = docset
-		self.indexSelectCallback = indexSelectCallback
+class DocsetIndexView (object):
+	def __init__(self, docset, indexes):
+		self.data = indexes
 		
 	def tableview_did_select(self, tableview, section, row):
-		self.indexSelectCallback(self.docset, self.data[row])
+		pass
 		
 	def tableview_number_of_sections(self, tableview):
 		return 1
@@ -20,19 +18,19 @@ class DocsetView (object):
 		cell = ui.TableViewCell()
 		cell.text_label.text = self.data[row]['name']
 		cell.accessory_type = 'disclosure_indicator'
-		if not self.data[row]['image'] == None:
-			cell.image_view.image = self.data[row]['image']
+		if not self.data[row]['type']['image'] == None:
+			cell.image_view.image = self.data[row]['type']['image']
 		return cell
 	
 tv = ui.TableView()
-def get_view(docsets, types, indexSelectCallback):
+def get_view(docsets, indexes):
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetView(docsets, types, indexSelectCallback)
+	data = DocsetIndexView(docsets, indexes)
 	tv.delegate = data
 	tv.data_source = data
 	tv.name = docsets['name']
