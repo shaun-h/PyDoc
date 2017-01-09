@@ -123,6 +123,11 @@ class DocsetManager (object):
 		
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		return ui.Image.named(imgPath)
+		
+	def __getTypeIconWithName(self, name):
+		
+		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath , name+'.png')
+		return ui.Image.named(imgPath)
 	
 	def downloadDocset(self, docset, action):
 		if not docset in self.downloading:
@@ -208,7 +213,7 @@ class DocsetManager (object):
 		data = c.fetchall()
 		conn.close()
 		for t in data:
-			types.append({'name':t[0], 'image':None})
+			types.append({'name':t[0], 'image':self.__getTypeIconWithName(t[0])})
 		return types
 		
 if __name__ == '__main__':
