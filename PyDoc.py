@@ -1,6 +1,7 @@
 from Managers import DocsetManager, ServerManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView
 import ui
+import threading
 
 class PyDoc(object):
 	def __init__(self):
@@ -45,7 +46,18 @@ class PyDoc(object):
 	def docset_index_selected_for_viewing(self, url):
 		view = DocsetWebView.get_view(url)
 		self.navigation_view.push_view(view)
-		
+	
+	def update_memory(self):
+		from Utilities import Memory
+		import time
+		while self.navigation_view.on_screen:
+			self.navigation_view.name = str(Memory.get_memory_details()['free'])
+			time.sleep(0.5)
+			
+			
 if __name__ == '__main__':
 	py = PyDoc()
-	py.navigation_view.present(hide_title_bar=True)
+	py.navigation_view.present(hide_title_bar=False)
+	t = threading.Thread(target=py.update_memory)
+	t.start()
+	

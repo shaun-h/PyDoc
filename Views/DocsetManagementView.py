@@ -60,7 +60,7 @@ class DocsetManagementView (object):
 		#self.refresh()
 	
 	def refresh(self):
-		self.data = self.refresh_docsets_action()
+		#self.data = self.refresh_docsets_action()
 		tv.reload()
 		
 class CustomAction(object):

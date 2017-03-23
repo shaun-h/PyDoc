@@ -1,4 +1,4 @@
-import json
+bimport json
 import os
 import ui
 import requests
@@ -10,6 +10,9 @@ import math
 import tarfile
 import plistlib
 import sqlite3
+from objc_util import ns, ObjCClass
+
+NSFileHandle = ObjCClass('NSFileHandle')
 
 class Docset(object):
 	def __init__(self):
@@ -154,7 +157,7 @@ class DocsetManager (object):
 	def updateUi(self, action, t):
 		while t.is_alive():
 			action()
-			time.sleep(0.1)
+			time.sleep(0.5)
 		action()
 		
 	def __getDownloadLink(self, link):
@@ -166,18 +169,27 @@ class DocsetManager (object):
 				return atype.text
 	
 	def downloadFile(self, url, docset):
+		print('tttioiihhhh')
 		local_filename = self.docsetFolder+'/'+url.split('/')[-1]
 		r = requests.get(url, headers = self.headers, stream=True)
 		total_length = r.headers.get('content-length')
 		dl = 0
 		last = 0
-		with open(local_filename, 'wb') as f:
-			for chunk in r.iter_content(chunk_size=1024): 
-				if chunk: # filter out keep-alive new chunks
-					dl += len(chunk)
-					f.write(chunk)
-					done = 100 * dl / int(total_length)
-					docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
+		NSFileManager = ObjCClass('NSFileManager')
+		if os.path.exists(local_filename):
+			os.remove(local_filename)
+		fileMan = NSFileManager.defaultManager()
+		fileMan.createFileAtPath_contents_attributes_(local_filename,None,None)
+		filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename).autorelease()
+		#with open(local_filename, 'wb') as f:
+		for chunk in r.iter_content(chunk_size=1024): 
+			if chunk: # filter out keep-alive new chunks
+				dl += len(chunk)
+				#print(dir(ns(chunk)))
+				filehandle.writeData_(ns(chunk))
+				done = 100 * dl / int(total_length)
+				docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
+					
 		docset['status'] = 'waiting for install'
 		self.installDocset(local_filename, docset)
 	
