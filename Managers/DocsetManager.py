@@ -1,4 +1,4 @@
-bimport json
+import json
 import os
 import ui
 import requests
@@ -180,7 +180,7 @@ class DocsetManager (object):
 			os.remove(local_filename)
 		fileMan = NSFileManager.defaultManager()
 		fileMan.createFileAtPath_contents_attributes_(local_filename,None,None)
-		filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename).autorelease()
+		filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename)
 		#with open(local_filename, 'wb') as f:
 		for chunk in r.iter_content(chunk_size=1024): 
 			if chunk: # filter out keep-alive new chunks

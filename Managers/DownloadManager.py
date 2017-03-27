@@ -9,19 +9,25 @@ NSURLConnection = ObjCClass('NSURLConnection')
 
 def connection_didReceiveResponse_(_self, _cmd, connection, response):
 	sel = ObjCInstance(_self)
-	sel.total_to_download = ObjCInstance(response).expectedContentLength()
+	res = ObjCInstance(response)
+	sel.total_to_download = res.expectedContentLength()
 	sel.total_downloaded = 0
 	sel.update = 0
+	del res
+	del sel
 
 def connection_didReceiveData_(_self, _cmd, connection, data):
 	sel = ObjCInstance(_self)
-	sel.total_downloaded += ObjCInstance(data).length()
-	sel.filehandle.writeData_(ObjCInstance(data))
+	d = ObjCInstance(data)
+	sel.total_downloaded += d.length()
+	sel.filehandle.writeData_(d)
 	sel.update += 1
 	if sel.update % 100 == 0 and not sel.updateCallback == None:
 		print(sel.update)
 		done = 100 * sel.total_downloaded / int(sel.total_to_download)
 		sel.updateCallback(str(round(done,2)) + '% ' + str(self.convertSize(sel.total_downloaded)) + ' / '+ str(self.convertSize(float(sel.total_to_download))))
+	del d
+	del sel
 	
 def connection_willCacheResponse_(_self, _cmd, connection, cachedResponse):
 	return None
@@ -30,6 +36,7 @@ def connectionDidFinishLoading_(_self, _cmd, connection):
 	sel = ObjCInstance(_self)
 	sel.filehandle = None
 	sel.finishedCallback()
+	del sel
 	print('finished')
 	
 def connection_didFailWithError_(_self, _cmd, connection, error):
@@ -50,7 +57,7 @@ def downloadFileToPath(url, path, received_response_callback = None, update_call
 		os.remove(local_filename)
 	fileMan.createFileAtPath_contents_attributes_(local_filename,None,None)
 	delegate = MyNSUrlDelegate.alloc().init().autorelease()
-	delegate.filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename).autorelease()
+	delegate.filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename)
 	delegate.updateCallback = update_callback
 	delegate.finishedCallback = finished_callback
 	request = NSURLRequest.requestWithURL_(NSURL.URLWithString(ns(url))).autorelease()
