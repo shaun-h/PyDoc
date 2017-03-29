@@ -9,10 +9,9 @@ import time
 import math
 import tarfile
 import plistlib
+import console
 import sqlite3
 from objc_util import ns, ObjCClass
-
-NSFileHandle = ObjCClass('NSFileHandle')
 
 class Docset(object):
 	def __init__(self):
@@ -134,8 +133,40 @@ class DocsetManager (object):
 		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath , name+'.png')
 		return ui.Image.named(imgPath)
 	
+	def __checkDocsetCanDownload(self, docset):
+		cont = True
+		feed = docset['feed']
+		title = ''
+		message = ''
+		if feed == 'DOM.xml':
+			cont = False
+			title = 'DOM Documentation'
+			message = 'There is no DOM docset. DOM documentation can be found in the JavaScript docset. Please install the JavaScript docset instead.'
+		elif feed == 'RubyMotion.xml':
+			cont = False
+			title = 'RubyMotion Documentation'
+			message = 'RubyMotion had to remove its API documentation due to legal reasons. Please contact the RubyMotion team for more details.\n\nIn the meantime, you can use the Apple API Reference docset instead.'
+		elif feed == 'Apple_API_Reference.xml':
+			cont = False
+			title = 'Apple API Reference'
+			message = 'To install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the Apple API Reference docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS Compatible Docset\"\n3. Transfer the resulting docset using iTunes File Sharing'
+		elif feed == 'Apple_Guides_and_Sample_Code.xml':
+			cont = False
+			title = 'Apple Guides and Sample Code'
+			message = 'To install the Apple Guides and Sample Code docset you need to:\n\n1. Download the docset in Xcode 8\'s Preferences > Components > Documentation\n2.Transfer it to Dash for iOS using iTunes File Sharing'
+		elif feed == 'OS_X.xml' or feed == 'macOS.xml' or feed == 'watchOS.xml' or feed == 'iOS.xml' or feed == 'tvOS.xml':
+			cont = False
+			title = 'Apple API Reference'
+			name = docset['name']
+			message = 'There is no '+name+' docset. The documentation for '+name+' can be found inside the Apple API Reference docset. \n\nTo install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS-compatible Docset\"\n3. Transfer the resulting docset using iTunes File Sharing'
+				
+		if cont == False:
+			console.alert(title, message,'Ok', hide_cancel_button=True)
+		return cont
+	
 	def downloadDocset(self, docset, action):
-		if not docset in self.downloading:
+		cont = self.__checkDocsetCanDownload(docset)
+		if cont and not docset in self.downloading:
 			docset['status'] = 'downloading'
 			self.downloading.append(docset)
 			action()
@@ -161,6 +192,11 @@ class DocsetManager (object):
 		action()
 		
 	def __getDownloadLink(self, link):
+		if link == 'SproutCore.xml':
+			data=requests.get('http://docs.sproutcore.com/feeds/' + link).text
+			e = xml.etree.ElementTree.fromstring(data)
+			for atype in e.findall('url'):
+				return atype.text
 		server = self.serverManager.getDownloadServer()
 		data = requests.get(server.url+link).text
 		e = xml.etree.ElementTree.fromstring(data)
@@ -169,27 +205,22 @@ class DocsetManager (object):
 				return atype.text
 	
 	def downloadFile(self, url, docset):
-		print('tttioiihhhh')
 		local_filename = self.docsetFolder+'/'+url.split('/')[-1]
 		r = requests.get(url, headers = self.headers, stream=True)
 		total_length = r.headers.get('content-length')
 		dl = 0
 		last = 0
-		NSFileManager = ObjCClass('NSFileManager')
 		if os.path.exists(local_filename):
 			os.remove(local_filename)
-		fileMan = NSFileManager.defaultManager()
-		fileMan.createFileAtPath_contents_attributes_(local_filename,None,None)
-		filehandle = NSFileHandle.fileHandleForUpdatingAtPath_(local_filename)
-		#with open(local_filename, 'wb') as f:
-		for chunk in r.iter_content(chunk_size=1024): 
-			if chunk: # filter out keep-alive new chunks
-				dl += len(chunk)
-				#print(dir(ns(chunk)))
-				filehandle.writeData_(ns(chunk))
-				done = 100 * dl / int(total_length)
-				docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
-					
+		with open(local_filename, 'wb') as f:
+			for chunk in r.iter_content(chunk_size=1024): 
+				if chunk: # filter out keep-alive new chunks
+					dl += len(chunk)
+					f.write(chunk)
+					done = 100 * dl / int(total_length)
+					docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
+		
+		r.close()			
 		docset['status'] = 'waiting for install'
 		self.installDocset(local_filename, docset)
 	
