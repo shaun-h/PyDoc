@@ -34,3 +34,9 @@ def get_view(docsets, docset_selected_callback):
 	tv.delegate = data
 	tv.data_source = data
 	return tv
+
+def refresh_view(data):
+	tv.data_source.data = data
+	tv.reload_data()
+	tv.reload()
+	

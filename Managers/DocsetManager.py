@@ -11,6 +11,9 @@ import tarfile
 import plistlib
 import console
 import sqlite3
+import shutil		
+from urllib.parse import urlparse
+from os.path import splitext, basename
 from objc_util import ns, ObjCClass
 
 class Docset(object):
@@ -20,6 +23,7 @@ class Docset(object):
 		
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
+		self.localServer = None
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets'
@@ -97,10 +101,31 @@ class DocsetManager (object):
 				pl = plistlib.readPlist(
 				os.path.join(folder,dir, self.plistPath))
 				name = pl['CFBundleName']
+				print(name)
 				if name == 'Sails.js':
 					name = 'SailsJS'
 				elif name == 'Backbone.js':
 					name = 'BackboneJS'
+				elif name == 'AngularDart':
+					name = 'Angular.dart'
+				elif name == 'D3.js':
+					name = 'D3JS'
+				elif name == 'Lodash':
+					name = 'Lo-Dash'
+				elif name == 'Marionette':
+					name = 'MarionetteJS'
+				elif name == 'Matplotlib':
+					name = 'MatPlotLib'
+				elif name == 'Moment.js':
+					name = 'MomentJS'
+				elif name == 'Node.js':
+					name = 'NodeJS'
+				elif name == 'Underscore.js':
+					name = 'UnderscoreJS'
+				elif name == 'Vue.js':
+					name = 'VueJS'
+				elif name == 'Zepto.js':
+					name = 'ZeptoJS'
 				ds.append({'name':name,'path':os.path.join(folder,dir)})
 		return ds
 
@@ -164,21 +189,21 @@ class DocsetManager (object):
 			console.alert(title, message,'Ok', hide_cancel_button=True)
 		return cont
 	
-	def downloadDocset(self, docset, action):
+	def downloadDocset(self, docset, action, refresh_main_view):
 		cont = self.__checkDocsetCanDownload(docset)
 		if cont and not docset in self.downloading:
 			docset['status'] = 'downloading'
 			self.downloading.append(docset)
 			action()
-			workThread = threading.Thread(target=self.__determineUrlAndDownload, args=(docset,action,))
+			workThread = threading.Thread(target=self.__determineUrlAndDownload, args=(docset,action,refresh_main_view,))
 			self.workThreads.append(workThread)
 			workThread.start()
 			
-	def __determineUrlAndDownload(self, docset, action):
+	def __determineUrlAndDownload(self, docset, action, refresh_main_view):
 		docset['stats'] = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(docset['feed'])
-		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,docset,))
+		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,docset,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
 		updateThread = threading.Thread(target=self.updateUi, args=(action,downloadThread,))
@@ -197,47 +222,259 @@ class DocsetManager (object):
 			e = xml.etree.ElementTree.fromstring(data)
 			for atype in e.findall('url'):
 				return atype.text
-		server = self.serverManager.getDownloadServer()
+		server = self.serverManager.getDownloadServer(self.localServer)
 		data = requests.get(server.url+link).text
 		e = xml.etree.ElementTree.fromstring(data)
 		for atype in e.findall('url'):
+			if not self.localServer == None:
+				disassembled = urlparse(atype.text)
+				filename, file_ext = splitext(basename(disassembled.path))
+				url = self.localServer
+				if not url[-1] == '/':
+					url = url + '/'
+				url = url + filename + file_ext
+				return url
 			if atype.text.find(server.url) >= 0:
 				return atype.text
 	
-	def downloadFile(self, url, docset):
+	def downloadFile(self, url, docset, refresh_main_view):
+		local_filename = self.__downloadFile(url, docset)
+		#self.__downloadFile(url+'.tarix', docset)
+		docset['status'] = 'waiting for install'
+		self.installDocset(local_filename, docset, refresh_main_view)
+	
+	def __downloadFile(self, url, docset):
 		local_filename = self.docsetFolder+'/'+url.split('/')[-1]
 		r = requests.get(url, headers = self.headers, stream=True)
-		total_length = r.headers.get('content-length')
-		dl = 0
-		last = 0
-		if os.path.exists(local_filename):
-			os.remove(local_filename)
-		with open(local_filename, 'wb') as f:
-			for chunk in r.iter_content(chunk_size=1024): 
-				if chunk: # filter out keep-alive new chunks
-					dl += len(chunk)
-					f.write(chunk)
-					done = 100 * dl / int(total_length)
-					docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
+		ret = None
+		if r.status_code == 200:
+			ret = local_filename
+			total_length = r.headers.get('content-length')
+			dl = 0
+			last = 0
+			if os.path.exists(local_filename):
+				os.remove(local_filename)
+			with open(local_filename, 'wb') as f:
+				for chunk in r.iter_content(chunk_size=1024): 
+					if chunk: # filter out keep-alive new chunks
+						dl += len(chunk)
+						f.write(chunk)
+						if not total_length == None:
+							done = 100 * dl / int(total_length)
+							docset['stats'] = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
+						else:
+							docset['stats'] = str(self.convertSize(dl))
 		
-		r.close()			
-		docset['status'] = 'waiting for install'
-		self.installDocset(local_filename, docset)
-	
-	def installDocset(self, filename, docset):
-		docset['status'] = 'installing'
+		r.close()	
+		return ret		
+		
+	def installDocset(self, filename, docset, refresh_main_view):
+		extract_location = self.docsetFolder
+		if docset['name'] == 'Drupal 7':
+			extract_location = os.path.join(self.docsetFolder, 'drupal7install')
+		elif docset['name'] == 'Drupal 8':
+			extract_location = os.path.join(self.docsetFolder, 'drupal8install')
+		elif docset['name'] == 'Java SE6':
+			extract_location = os.path.join(self.docsetFolder, 'javase6install')
+		elif docset['name'] == 'Java SE7':
+			extract_location = os.path.join(self.docsetFolder, 'javase7install')
+		elif docset['name'] == 'Java SE8':
+			extract_location = os.path.join(self.docsetFolder, 'javase8install')
+		elif docset['name'] == 'Lua 5.1':
+			extract_location = os.path.join(self.docsetFolder, 'lua51install')
+		elif docset['name'] == 'Lua 5.2':
+			extract_location = os.path.join(self.docsetFolder, 'lua52install')
+		elif docset['name'] == 'Lua 5.3':
+			extract_location = os.path.join(self.docsetFolder, 'lua53install')
+		elif docset['name'] == 'Qt 4':
+			extract_location = os.path.join(self.docsetFolder, 'qt4install')
+		elif docset['name'] == 'Qt 5':
+			extract_location = os.path.join(self.docsetFolder, 'qt5install')
+		elif docset['name'] == 'Ruby':
+			extract_location = os.path.join(self.docsetFolder, 'rubyinstall')
+		elif docset['name'] == 'Ruby 2':
+			extract_location = os.path.join(self.docsetFolder, 'ruby2install')
+		elif docset['name'] == 'Ruby on Rails 3':
+			extract_location = os.path.join(self.docsetFolder, 'rubyonrails3install')
+		elif docset['name'] == 'Ruby on Rails 4':
+			extract_location = os.path.join(self.docsetFolder, 'rubyonrails4install')
+		elif docset['name'] == 'Ruby on Rails 5':
+			extract_location = os.path.join(self.docsetFolder, 'rubyonrails5install')
+		elif docset['name'] == 'Zend Framework 1':
+			extract_location = os.path.join(self.docsetFolder, 'zendframework1install')
+		elif docset['name'] == 'Zend Framework 2':
+			extract_location = os.path.join(self.docsetFolder, 'zendfrmework2install')
+		elif docset['name'] == 'Zend Framework 3':
+			extract_location = os.path.join(self.docsetFolder, 'zendframework3install')
+		docset['status'] = 'Preparing to install: This might take a while.'
 		tar = tarfile.open(filename, 'r:gz')
-		tar.extractall(path=self.docsetFolder)
+		tar.extractall(path=extract_location, members = self.track_progress(tar, docset, len(tar.getmembers())))
 		tar.close()
 		os.remove(filename)
-		self.indexDocset(docset)
-	
-	def indexDocset(self, docset):
-		docset['status'] = 'indexing'
-		self.postProcess(docset)
+		if docset['name'] == 'Drupal 7':
+			p = os.path.join(extract_location, 'Drupal.docset')
+			n = 'Drupal7.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Drupal 8':
+			p = os.path.join(extract_location, 'Drupal.docset')
+			n = 'Drupal8.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Java SE6':
+			p = os.path.join(extract_location, 'Java.docset')
+			n = 'JavaSE6.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Java SE7':
+			p = os.path.join(extract_location, 'Java.docset')
+			n = 'JavaSE7.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Java SE8':
+			p = os.path.join(extract_location, 'Java.docset')
+			n = 'JavaSE8.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Lua 5.1':
+			p = os.path.join(extract_location, 'Lua.docset')
+			n = 'Lua51.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Lua 5.2':
+			p = os.path.join(extract_location, 'Lua.docset')
+			n = 'Lua52.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Lua 5.3':
+			p = os.path.join(extract_location, 'Lua.docset')
+			n = 'Lua53.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Qt 4':
+			p = os.path.join(extract_location, 'Qt.docset')
+			n = 'Qt4.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Qt 5':
+			p = os.path.join(extract_location, 'Qt.docset')
+			n = 'Qt5.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Ruby':
+			p = os.path.join(extract_location, 'Ruby.docset')
+			n = 'Ruby1.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Ruby 2':
+			p = os.path.join(extract_location, 'Ruby.docset')
+			n = 'Ruby2.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Ruby on Rails 3':
+			p = os.path.join(extract_location, 'Ruby on Rails.docset')
+			n = 'Ruby on Rails3.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Ruby on Rails 4':
+			p = os.path.join(extract_location, 'Ruby on Rails.docset')
+			n = 'Ruby on Rails4.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Ruby on Rails 5':
+			p = os.path.join(extract_location, 'Ruby on Rails.docset')
+			n = 'Ruby on Rails5.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Zend Framework 1':
+			p = os.path.join(extract_location, 'Zend_Framework.docset')
+			n = 'Zend_Framework1.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Zend Framework 2':
+			p = os.path.join(extract_location, 'Zend_Framework.docset')
+			n = 'Zend_Framework2.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Zend Framework 3':
+			p = os.path.join(extract_location, 'Zend_Framework.docset')
+			n = 'Zend_Framework3.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
 		
-	def postProcess(self, docset):
+		self.indexDocset(docset, refresh_main_view)
+	
+	def track_progress(self, members, docset, totalFiles):
+		i = 0
+		for member in members:
+			i = i + 1
+			done = 100 * i / totalFiles
+			docset['status'] = 'installing: ' + str(round(done,2)) + '% ' + str(i) + ' / '+ str(totalFiles) 
+			yield member
+	
+	
+	
+	def indexDocset(self, docset, refresh_main_view):
+		docset['status'] = 'indexing'
+		self.postProcess(docset, refresh_main_view)
+		
+	def postProcess(self, docset, refresh_main_view):
 		docset['status'] = 'installed'
+		refresh_main_view()
 
 	def convertSize(self, size):
 		if (size == 0):
@@ -286,8 +523,17 @@ class DocsetManager (object):
 		for i in data:
 			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
 		return types
+	
+	def deleteDocset(self, docset, post_action):
+		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'], 'Ok')
+		if but == 1:
+			shutil.rmtree(docset['path'])
+			docset['status'] = 'online'
+			post_action()
+			docset['path'] = None
 		
 if __name__ == '__main__':
 	dm = DocsetManager()
-	print(dm.getAvailableDocsets())
+	print((dm.getAvailableDocsets()))
 	
+

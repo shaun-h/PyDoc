@@ -11,9 +11,7 @@ class DocsetIndexView (object):
 		
 	def tableview_did_select(self, tableview, section, row):
 		url = 'file://' + os.path.join(self.docset['path'], 'Contents/Resources/Documents', self.data[row]['path'])
-		#url = quote(url.encode('utf-8'))
 		url = url.replace(' ', '%20')
-		print(url)
 		self.indexSelectCallback(url)
 		
 	def tableview_number_of_sections(self, tableview):

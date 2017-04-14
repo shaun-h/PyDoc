@@ -25,8 +25,12 @@ class PyDoc(object):
 
 	def setup_management_view(self):
 		docsets = self.docset_manager.getAvailableDocsets()
-		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets)
-		
+		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data)
+	
+	def refresh_main_view_data(self):
+		docsets = self.docset_manager.getDownloadedDocsets() 
+		DocsetListView.refresh_view(docsets)
+				
 	def setup_settings_view(self):
 		return SettingsView.get_view(self.management_view)
 		

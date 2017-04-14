@@ -1,11 +1,12 @@
-
 import ui
 
 class DocsetManagementView (object):
-	def __init__(self, docsets, download_action, refresh_docsets_action):
+	def __init__(self, docsets, download_action, refresh_docsets_action, delete_action,refresh_main_view):
 		self.data = docsets
 		self.download_action = download_action
 		self.refresh_docsets_action = refresh_docsets_action
+		self.delete_action = delete_action
+		self.refresh_main_view = refresh_main_view
 		
 		
 	def tableview_did_select(self, tableview, section, row):
@@ -54,11 +55,20 @@ class DocsetManagementView (object):
 		ca.row = row
 		button.action = ca
 		return button
-		
+
+	def refresh_all_views(self):
+		self.refresh_main_view()
+		d = self.refresh_docsets_action()
+		refresh_view(d)
+						
 	def action(self, sender):
-		self.download_action(sender.action.row, self.refresh)
-		#self.refresh()
-	
+		if 'path' in sender.action.row and not sender.action.row['path'] == None:
+			self.delete_action(sender.action.row, self.refresh_all_views)
+			sender.action.row['path'] = None
+			#self.refresh()
+		else:
+			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
+				
 	def refresh(self):
 		#self.data = self.refresh_docsets_action()
 		tv.reload()
@@ -76,18 +86,25 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(docsets, download_action, refresh_docsets_action):
+def get_view(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Docsets'
-	data = DocsetManagementView(docsets, download_action, refresh_docsets_action)
+	data = DocsetManagementView(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
 	
+def refresh_view(data):
+	tv.data_source.data = data
+	tv.reload_data()
+	#tv.set_needs_display()
+	#tv.reload()
+
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
 	view.present()
+
 

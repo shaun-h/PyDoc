@@ -51,7 +51,11 @@ class ServerManager (object):
 				s.url = dynamicServerUrl
 				self.__dynamicServers.append(s)
 	
-	def getDownloadServer(self):
+	def getDownloadServer(self, server = None):
+		if not server == None:
+			s = Server()
+			s.url = server
+			return s
 		downloadServer = None
 		self.updateServerLatency()
 		for server in self.__servers:
