@@ -1,30 +1,52 @@
 import ui
+from objc_util import ObjCClass, NSURL, ns
 	
 class SettingsView (object):
 	def __init__(self, management_view):
 		self.data = ['Standard Docsets']
+		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.manage_docset_row = [0,0]
 		self.management_view = management_view
+		self.docset_section_number = 0
+		self.ack_section_number = 1
 		
 	def tableview_did_select(self, tableview, section, row):
 		if self.manage_docset_row[0] == section and self.manage_docset_row[1] == row:
 			tv.navigation_view.push_view(self.management_view)
+		if self.ack_section_number == section:
+			if row == 0:
+				self.open_url(self.ack_data[row]['url'])
 			
 		
 	def tableview_number_of_sections(self, tableview):
-		return 1
+		return 2
 		
 	def tableview_number_of_rows(self, tableview, section):
-		return len(self.data)
+		if section == self.docset_section_number:
+			return len(self.data)
+		if section == self.ack_section_number:
+			return len(self.ack_data)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell()
-		cell.text_label.text = self.data[row]
-		cell.accessory_type = 'disclosure_indicator'
+		if section == self.docset_section_number:
+			cell.text_label.text = self.data[row]
+			cell.accessory_type = 'disclosure_indicator'
+		elif section == self.ack_section_number:
+			cell.text_label.text = self.ack_data[row]['text']
 		return cell
 	
 	def tableview_title_for_header(self, tableview, section):
-		return 'Manage Docsets'
+		if section == self.docset_section_number:
+			return 'Manage Docsets'
+		if section == self.ack_section_number:
+			return 'Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.'
+	
+	def open_url(self, url):
+		UIApplication = ObjCClass('UIApplication')
+		sharedApplication = UIApplication.sharedApplication()
+		internalurl = NSURL.URLWithString_(ns(url))
+		sharedApplication.openURL_(internalurl)
 
 tv = ui.TableView('grouped')
 def get_view(management_view):
