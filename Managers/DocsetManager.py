@@ -507,8 +507,9 @@ class DocsetManager (object):
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
+		img = self.__getTypeIconWithName(type['name'])
 		for t in data:
-			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':{'name':t[0], 'image':img}, 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForDocset(self, docset):
