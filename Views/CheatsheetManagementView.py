@@ -1,12 +1,8 @@
 import ui
 
-class DocsetManagementView (object):
-	def __init__(self, docsets, download_action, refresh_docsets_action, delete_action,refresh_main_view):
-		self.data = docsets
-		self.download_action = download_action
-		self.refresh_docsets_action = refresh_docsets_action
-		self.delete_action = delete_action
-		self.refresh_main_view = refresh_main_view	
+class CheatsheetManagementView (object):
+	def __init__(self, cheatsheets):
+		self.data = cheatsheets
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -18,15 +14,15 @@ class DocsetManagementView (object):
 		return len(self.data)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
-		status = self.data[row]['status']
+		status = 'online' #self.data[row]['status']
 		cell = ui.TableViewCell('subtitle')
-		cell.text_label.text = self.data[row]['name']
+		cell.text_label.text = self.data[row].name
 		if not status == 'downloading':
 			cell.detail_text_label.text = status
-		else:
-			cell.detail_text_label.text = self.data[row]['stats']
-		if not self.data[row]['image'] == None:
-			cell.image_view.image = self.data[row]['image']
+		#else:
+		#	cell.detail_text_label.text = self.data[row]['stats']
+		if not self.data[row].image == None:
+			cell.image_view.image = self.data[row].image
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
 		iv.x = cell.content_view.width - (iv.width * 1.5)
 		iv.y = (cell.content_view.height) - (iv.height * 1.05)
@@ -61,6 +57,7 @@ class DocsetManagementView (object):
 		refresh_view(d)
 						
 	def action(self, sender):
+		return None
 		if 'path' in sender.action.row and not sender.action.row['path'] == None:
 			self.delete_action(sender.action.row, self.refresh_all_views)
 			sender.action.row['path'] = None
@@ -69,7 +66,6 @@ class DocsetManagementView (object):
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
 	def refresh(self):
-		#self.data = self.refresh_docsets_action()
 		tv.reload()
 		
 class CustomAction(object):
@@ -85,13 +81,13 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view):
+def get_view(docsets):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
-	tv.name = 'Docsets'
-	data = DocsetManagementView(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view)
+	tv.name = 'Cheatsheets'
+	data = CheatsheetManagementView(docsets)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
@@ -99,11 +95,8 @@ def get_view(docsets, download_action, refresh_docsets_action, delete_action, re
 def refresh_view(data):
 	tv.data_source.data = data
 	tv.reload_data()
-	#tv.set_needs_display()
-	#tv.reload()
 
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
 	view.present()
-
 

@@ -1,15 +1,18 @@
-from Managers import DocsetManager, ServerManager
-from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView
+from Managers import DocsetManager, ServerManager, CheatsheetManager
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView
 import ui
 import threading
 
 class PyDoc(object):
 	def __init__(self):
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
+		self.cheatsheet_manager = CheatsheetManager.CheatsheetManager(ServerManager.ServerManager(), 'Images/icons')
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
-		self.management_view = self.setup_management_view()
+		self.docset_management_view = self.setup_docset_management_view()
+		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
 		self.settings_view = self.setup_settings_view()
+		
 		
 	def setup_navigation_view(self):
 		nav_view = ui.NavigationView(self.main_view)
@@ -23,16 +26,23 @@ class PyDoc(object):
 		main_view.left_button_items = [settings_button]
 		return main_view
 
-	def setup_management_view(self):
+	def setup_docset_management_view(self):
 		docsets = self.docset_manager.getAvailableDocsets()
 		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data)
 	
 	def refresh_main_view_data(self):
 		docsets = self.docset_manager.getDownloadedDocsets() 
 		DocsetListView.refresh_view(docsets)
-				
+	
+	def setup_cheatsheetmanagement_view(self):
+		cheatsheets = self.cheatsheet_manager.getAvailableCheatsheets()
+		return CheatsheetManagementView.get_view(cheatsheets)
+		
+	def show_cheatsheetmanagement_view(self):
+		self.navigation_view.push_view(self.cheatsheet_management_view)
+		
 	def setup_settings_view(self):
-		return SettingsView.get_view(self.management_view)
+		return SettingsView.get_view(self.docset_management_view, self.cheatsheet_management_view)
 		
 	def show_settings_view(self, sender):
 		self.navigation_view.push_view(self.settings_view)
