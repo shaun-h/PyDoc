@@ -1,8 +1,13 @@
 import ui
 
 class CheatsheetManagementView (object):
-	def __init__(self, cheatsheets):
+	def __init__(self, cheatsheets, download_action, refresh_main_view, delete_action, refresh_cheatsheets_action):
 		self.data = cheatsheets
+		self.delete_action = delete_action
+		self.download_action = download_action
+		self.refresh_main_view = refresh_main_view
+		self.refresh_cheatsheets_action = refresh_cheatsheets_action
+		
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -14,13 +19,13 @@ class CheatsheetManagementView (object):
 		return len(self.data)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
-		status = 'online' #self.data[row]['status']
+		status = self.data[row].status
 		cell = ui.TableViewCell('subtitle')
 		cell.text_label.text = self.data[row].name
 		if not status == 'downloading':
 			cell.detail_text_label.text = status
-		#else:
-		#	cell.detail_text_label.text = self.data[row]['stats']
+		else:
+			cell.detail_text_label.text = self.data[row].stats
 		if not self.data[row].image == None:
 			cell.image_view.image = self.data[row].image
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
@@ -53,14 +58,13 @@ class CheatsheetManagementView (object):
 
 	def refresh_all_views(self):
 		self.refresh_main_view()
-		d = self.refresh_docsets_action()
+		d = self.refresh_cheatsheets_action()
 		refresh_view(d)
 						
 	def action(self, sender):
-		return None
-		if 'path' in sender.action.row and not sender.action.row['path'] == None:
+		if not sender.action.row.path == None:
 			self.delete_action(sender.action.row, self.refresh_all_views)
-			sender.action.row['path'] = None
+			sender.action.row.path = None
 			#self.refresh()
 		else:
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
@@ -81,13 +85,13 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(docsets):
+def get_view(cheatsheets, download_action, refresh_all_views, delete_action, refresh_cheatsheets_action):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Cheatsheets'
-	data = CheatsheetManagementView(docsets)
+	data = CheatsheetManagementView(cheatsheets, download_action, refresh_all_views, delete_action, refresh_cheatsheets_action)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

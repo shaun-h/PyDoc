@@ -101,7 +101,6 @@ class DocsetManager (object):
 				pl = plistlib.readPlist(
 				os.path.join(folder,dir, self.plistPath))
 				name = pl['CFBundleName']
-				print(name)
 				if name == 'Sails.js':
 					name = 'SailsJS'
 				elif name == 'Backbone.js':

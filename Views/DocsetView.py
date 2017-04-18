@@ -25,7 +25,7 @@ class DocsetView (object):
 		return cell
 	
 tv = ui.TableView()
-def get_view(docsets, types, indexSelectCallback):
+def get_view(docsets, types, indexSelectCallback, docsetType):
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
@@ -35,5 +35,8 @@ def get_view(docsets, types, indexSelectCallback):
 	data = DocsetView(docsets, types, indexSelectCallback)
 	tv.delegate = data
 	tv.data_source = data
-	tv.name = docsets['name']
+	if docsetType == 'docset':
+		tv.name = docsets['name']
+	elif docsetType == 'cheatsheet':
+		tv.name = docsets.name
 	return tv
