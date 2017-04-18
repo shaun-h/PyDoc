@@ -209,7 +209,6 @@ class CheatsheetManager (object):
 		cheatsheet.stats = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(cheatsheet.id)
-		print(downloadLink)
 		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,cheatsheet,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
