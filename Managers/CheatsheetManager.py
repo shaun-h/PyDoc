@@ -186,10 +186,14 @@ class CheatsheetManager (object):
 	
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
+		if not os.path.exists(imgPath):
+			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
 		return ui.Image.named(imgPath)
 	
 	def __getTypeIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, name+'.png')
+		if not os.path.exists(imgPath):
+			imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, 'Unknown.png')
 		return ui.Image.named(imgPath)
 	
 	def __createCheatsheetFolder(self):

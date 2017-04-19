@@ -124,7 +124,7 @@ class UserContributedManager (object):
 		self.typeIconPath = typeIconPath
 		self.localServer = None
 		self.jsonServerLocation = 'zzz/user_contributed/build/index.json'
-		self.downloadServerLocation = 'zzz/user_contributed/build/%@/%$'#, entry.uniqueIdentifier, self.json[@"docsets"][entry.uniqueIdentifier][@"archive"]]'
+		self.downloadServerLocation = 'zzz/user_contributed/build/%@/%$'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
 		self.userContributedFolder = 'UserContributions'
@@ -190,14 +190,12 @@ class UserContributedManager (object):
 		data = requests.get(url).text
 		data = ast.literal_eval(data)
 		usercontributed = []
-		#icon = None
 		defaultIcon = self.__getIconWithName('Other')
 		for k,d in data['docsets'].items():
 			u = UserContributed()
 			u.name = d['name']
 			if 'aliases' in d.keys():
 				u.aliases = d['aliases']
-			#c.globalversion = data['global_version']
 			u.version = d['version']
 			u.archive = d['archive']
 			u.authorName = d['author']['name']
@@ -213,10 +211,14 @@ class UserContributedManager (object):
 	
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
+		if not os.path.exists(imgPath):
+			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
 		return ui.Image.named(imgPath)
 	
 	def __getTypeIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, name+'.png')
+		if not os.path.exists(imgPath):
+			imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, 'Unknown.png')
 		return ui.Image.named(imgPath)
 	
 	def __createUserContributedFolder(self):
