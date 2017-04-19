@@ -39,4 +39,6 @@ def get_view(docsets, types, indexSelectCallback, docsetType):
 		tv.name = docsets['name']
 	elif docsetType == 'cheatsheet':
 		tv.name = docsets.name
+	elif docsetType == 'usercontributed':
+		tv.name = docsets.name
 	return tv
