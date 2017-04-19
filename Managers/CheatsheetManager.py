@@ -107,7 +107,7 @@ class CheatsheetManager (object):
 		self.downloadServerLocation = 'zzz/cheatsheets/%@.tgz'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
-		self.cheatsheetFolder = 'Cheatsheets'
+		self.cheatsheetFolder = 'Docsets/Cheatsheets'
 		self.headers = {'User-Agent': 'PyDoc-Pythonista'}
 		self.cheatsheets = None
 		self.downloading = []

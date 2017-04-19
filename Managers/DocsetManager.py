@@ -26,7 +26,7 @@ class DocsetManager (object):
 		self.localServer = None
 		self.docsets = []
 		self.downloading = []
-		self.docsetFolder = 'Docsets'
+		self.docsetFolder = 'Docsets/Standard'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
 		self.iconPath = iconPath

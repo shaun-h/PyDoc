@@ -127,7 +127,7 @@ class UserContributedManager (object):
 		self.downloadServerLocation = 'zzz/user_contributed/build/%@/%$'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
-		self.userContributedFolder = 'UserContributions'
+		self.userContributedFolder = 'Docsets/UserContributions'
 		self.headers = {'User-Agent': 'PyDoc-Pythonista'}
 		self.usercontributed = None
 		self.downloading = []

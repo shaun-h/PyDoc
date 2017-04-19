@@ -1,18 +1,18 @@
-#PyDoc
+# PyDoc
 PyDoc is a docset browser written in python for [Pythonista](http://omz-software.com/pythonista/). 
 
-##Getting Started
+## Getting Started
 To get started download this code to Pythonista. 
 
 *Instructions will be added soon*
 
 Then run the script PyDoc.py this will start the application.
 
-##License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details
 
-##Acknowledgments
+## Acknowledgments
 
 Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.
 
