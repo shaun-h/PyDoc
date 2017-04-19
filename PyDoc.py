@@ -2,11 +2,12 @@ from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContri
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView
 import ui
 import threading
-#import dialogs
+import console
 import os
 
 class PyDoc(object):
 	def __init__(self):
+		console.show_activity('Loading...')
 		self.docsetFolder='Docsets'
 		self.setup()
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
@@ -18,6 +19,7 @@ class PyDoc(object):
 		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
 		self.usercontributed_management_view = self.setup_usercontributedmanagement_view()
 		self.settings_view = self.setup_settings_view()
+		console.hide_activity()
 		
 	def setup(self):
 		if not os.path.exists(self.docsetFolder):
@@ -38,7 +40,6 @@ class PyDoc(object):
 		return main_view
 
 	def setup_docset_management_view(self):
-		#dialogs.hud_alert('Loading Standard Docsets')
 		docsets = self.docset_manager.getAvailableDocsets()
 		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data)
 	
@@ -49,7 +50,6 @@ class PyDoc(object):
 		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
 	
 	def setup_cheatsheetmanagement_view(self):
-		#dialogs.hud_alert('Loading Cheat Sheets')
 		cheatsheets = self.cheatsheet_manager.getAvailableCheatsheets()
 		return CheatsheetManagementView.get_view(cheatsheets, self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets)
 		
@@ -57,7 +57,6 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.cheatsheet_management_view)
 		
 	def setup_usercontributedmanagement_view(self):
-		#dialogs.hud_alert('Loading User Contributed Docsets')
 		usercontributed = self.usercontributed_manager.getAvailableUserContributed()
 		return UserContributedManagementView.get_view(usercontributed, self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed)
 		
