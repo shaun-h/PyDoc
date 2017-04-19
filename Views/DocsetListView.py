@@ -11,6 +11,7 @@ class DocsetListView (object):
 		self.usercontributed_selected_callback = usercontributed_selected_callback
 		self.docsetSection = -1
 		self.cheatsheetSection = -1
+		self.usercontributedSection = -1
 		self.numberOfSections = 0
 	
 		
@@ -19,12 +20,16 @@ class DocsetListView (object):
 			self.docset_selected_callback(self.docsets[row])
 		elif section == self.cheatsheetSection:
 			self.cheatsheet_selected_callback(self.cheatsheets[row])
+		elif section == self.usercontributedSection:
+			self.usercontributed_selected_callback(self.usercontributed[row])
 	
 	def tableview_title_for_header(self, tableview, section):
 		if section == self.docsetSection:
 			return 'Docsets'
 		elif section == self.cheatsheetSection:
-			return 'Cheatsheets'	
+			return 'Cheat Sheets'
+		elif section == self.usercontributedSection:
+			return 'User Contributed Docsets'	
 	
 	def tableview_number_of_sections(self, tableview):
 		self.determineSections()
@@ -35,9 +40,11 @@ class DocsetListView (object):
 			return len(self.docsets)
 		elif section == self.cheatsheetSection:
 			return len(self.cheatsheets)
+		elif  section == self.usercontributedSection:
+			return len(self.usercontributed)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
-		cell = ui.TableViewCell()
+		cell = ui.TableViewCell('subtitle')
 		if section == self.docsetSection:
 			cell.text_label.text = self.docsets[row]['name']
 			cell.accessory_type = 'disclosure_indicator'
@@ -48,6 +55,12 @@ class DocsetListView (object):
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.cheatsheets[row].image == None:
 				cell.image_view.image = self.cheatsheets[row].image
+		elif section == self.usercontributedSection:
+			cell.text_label.text = self.usercontributed[row].name
+			cell.detail_text_label.text = 'Contributed by ' + self.usercontributed[row].authorName
+			cell.accessory_type = 'disclosure_indicator'
+			if not self.usercontributed[row].image == None:
+				cell.image_view.image = self.usercontributed[row].image
 		return cell
 	
 	def determineSections(self):
@@ -57,6 +70,9 @@ class DocsetListView (object):
 			self.numberOfSections = self.numberOfSections + 1
 		if len(self.cheatsheets) > 0:
 			self.cheatsheetSection = self.numberOfSections
+			self.numberOfSections = self.numberOfSections + 1
+		if len(self.usercontributed) > 0:
+			self.usercontributedSection = self.numberOfSections
 			self.numberOfSections = self.numberOfSections + 1
 	
 tv = ui.TableView()
@@ -71,9 +87,10 @@ def get_view(docsets, cheatsheets, usercontributed, docset_selected_callback, ch
 	tv.data_source = data
 	return tv
 
-def refresh_view(docsets, cheatsheets):
+def refresh_view(docsets, cheatsheets, usercontributed):
 	tv.data_source.docsets = docsets
 	tv.data_source.cheatsheets = cheatsheets
+	tv.data_source.usercontributed = usercontributed
 	tv.reload_data()
 	tv.reload()
 	

@@ -36,7 +36,7 @@ class PyDoc(object):
 	def refresh_main_view_data(self):
 		docsets = self.docset_manager.getDownloadedDocsets() 
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
-		usercontributed = self.usercontributed_manager.getDownloadedUserContributions()
+		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
 	
 	def setup_cheatsheetmanagement_view(self):

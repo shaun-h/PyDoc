@@ -3,7 +3,7 @@ from objc_util import ObjCClass, NSURL, ns
 	
 class SettingsView (object):
 	def __init__(self, docset_management_view, cheatsheet_management_view, usercontributed_management_view):
-		self.data = ['Standard Docsets', 'Cheatsheets', 'User Contributed']
+		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1

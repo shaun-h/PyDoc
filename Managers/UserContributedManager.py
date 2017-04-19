@@ -13,6 +13,7 @@ import console
 import shutil
 import sqlite3
 import base64
+import clipboard
 
 class UserContributed (object):
 	def __init__(self):
@@ -25,6 +26,8 @@ class UserContributed (object):
 		self.__path = None
 		self.__status = ''
 		self.__stats = ''
+		self.__archive = ''
+		self.__authorName = ''
 		
 	@property
 	def version(self):
@@ -97,6 +100,22 @@ class UserContributed (object):
 	@stats.setter
 	def stats(self, stats):
 		self.__stats = stats
+	
+	@property
+	def archive(self):
+		return self.__archive
+	
+	@archive.setter
+	def archive(self, archive):
+		self.__archive = archive
+	
+	@property
+	def authorName(self):
+		return self.__authorName
+	
+	@authorName.setter
+	def authorName(self, an):
+		self.__authorName = an
 		
 class UserContributedManager (object):
 	def __init__(self, serverManager, iconPath, typeIconPath):
@@ -172,7 +191,7 @@ class UserContributedManager (object):
 		data = ast.literal_eval(data)
 		usercontributed = []
 		#icon = None
-		#self.__getIconWithName('cheatsheet')
+		defaultIcon = self.__getIconWithName('Other')
 		for k,d in data['docsets'].items():
 			u = UserContributed()
 			u.name = d['name']
@@ -180,9 +199,13 @@ class UserContributedManager (object):
 				u.aliases = d['aliases']
 			#c.globalversion = data['global_version']
 			u.version = d['version']
+			u.archive = d['archive']
+			u.authorName = d['author']['name']
 			if 'icon' in d.keys():
 				imgdata = base64.standard_b64decode(d['icon'])
 				u.image = ui.Image.from_data(imgdata)
+			else:
+				u.image = defaultIcon
 			u.id = k
 			u.status = 'online'
 			usercontributed.append(u)
@@ -212,7 +235,7 @@ class UserContributedManager (object):
 	def __determineUrlAndDownload(self, usercontributed, action, refresh_main_view):
 		usercontributed.stats = 'getting download link'
 		action()
-		downloadLink = self.__getDownloadLink(usercontributed.id)
+		downloadLink = self.__getDownloadLink(usercontributed.id, usercontributed.archive)
 		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,usercontributed,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
@@ -226,13 +249,14 @@ class UserContributedManager (object):
 			time.sleep(0.5)
 		action()
 	
-	def __getDownloadLink(self, id):
+	def __getDownloadLink(self, id, archive):
 		server = self.serverManager.getDownloadServer(self.localServer)
 		url = server.url
 		if not url[-1] == '/':
 			url = url + '/'
 		url = url + self.downloadServerLocation
 		url = url.replace('%@', id)
+		url = url.replace('%$', archive)
 		return url
 	
 	def downloadFile(self, url, usercontributed, refresh_main_view):
