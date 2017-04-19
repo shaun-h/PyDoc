@@ -2,11 +2,13 @@
 import ui
 
 class DocsetListView (object):
-	def __init__(self, docsets, cheatsheets, docset_selected_callback, cheatsheet_selected_callback):
+	def __init__(self, docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback):
 		self.docsets = docsets
 		self.cheatsheets = cheatsheets
+		self.usercontributed = usercontributed
 		self.docset_selected_callback = docset_selected_callback
 		self.cheatsheet_selected_callback = cheatsheet_selected_callback
+		self.usercontributed_selected_callback = usercontributed_selected_callback
 		self.docsetSection = -1
 		self.cheatsheetSection = -1
 		self.numberOfSections = 0
@@ -58,13 +60,13 @@ class DocsetListView (object):
 			self.numberOfSections = self.numberOfSections + 1
 	
 tv = ui.TableView()
-def get_view(docsets, cheatsheets, docset_selected_callback, cheatsheet_selected_callback):
+def get_view(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetListView(docsets, cheatsheets, docset_selected_callback, cheatsheet_selected_callback)
+	data = DocsetListView(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
