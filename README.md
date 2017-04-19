@@ -17,3 +17,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.
 
 [Dash](https://kapeli.com/dash)
+
+## Known Issues
+
+- Not all user contribued docsets are shown even though they are installed.
