@@ -15,6 +15,7 @@ import shutil
 from urllib.parse import urlparse
 from os.path import splitext, basename
 from objc_util import ns, ObjCClass
+from Managers import DBManager
 
 class Docset(object):
 	def __init__(self):
@@ -71,6 +72,7 @@ class DocsetManager (object):
 				if c['name'] == d['name']:
 					c['status'] = 'installed'
 					c['path'] = d['path']
+					c['id'] = d['id']
 		for d in self.__getDownloadingDocsets():
 			for c in docsets:
 				if c['name'] == d['name']:
@@ -83,50 +85,61 @@ class DocsetManager (object):
 	
 	def getDownloadedDocsets(self):
 		ds = []
-		for dd in self.__getDownloadedDocsets():
-			for feed in self.docsetFeeds:
-				if dd['name'] == feed['name']:
-					feed['path'] = dd['path']
-					ds.append(feed)
+		return self.__getDownloadedDocsets()
+			#for feed in self.docsetFeeds:
+				#if dd['name'] == feed['name']:
+				#	feed['path'] = dd['path']
+				#	feed['']
+				#	ds.append(feed)
 		return ds
 	
 	def __docsetFeedToDocset(self, feed):
 		return feed
 			
 	def __getDownloadedDocsets(self):
+		dbManager = DBManager.DBManager()
+		t = dbManager.InstalledDocsetsByType('standard')
 		ds = []
-		folder = os.path.join(os.path.abspath('.'), self.docsetFolder)
-		for dir in os.listdir(folder):
-			if os.path.isdir(os.path.join(folder,dir)):
-				pl = plistlib.readPlist(
-				os.path.join(folder,dir, self.plistPath))
-				name = pl['CFBundleName']
-				if name == 'Sails.js':
-					name = 'SailsJS'
-				elif name == 'Backbone.js':
-					name = 'BackboneJS'
-				elif name == 'AngularDart':
-					name = 'Angular.dart'
-				elif name == 'D3.js':
-					name = 'D3JS'
-				elif name == 'Lodash':
-					name = 'Lo-Dash'
-				elif name == 'Marionette':
-					name = 'MarionetteJS'
-				elif name == 'Matplotlib':
-					name = 'MatPlotLib'
-				elif name == 'Moment.js':
-					name = 'MomentJS'
-				elif name == 'Node.js':
-					name = 'NodeJS'
-				elif name == 'Underscore.js':
-					name = 'UnderscoreJS'
-				elif name == 'Vue.js':
-					name = 'VueJS'
-				elif name == 'Zepto.js':
-					name = 'ZeptoJS'
-				ds.append({'name':name,'path':os.path.join(folder,dir)})
+		for d in t:
+			aa = {}
+			aa['name'] = d[1]
+			aa['id'] = d[0]
+			aa['path'] = os.path.join(os.path.abspath('.'),d[2])
+			aa['image'] = self.__getIconWithName(d[4])
+			ds.append(aa)
 		return ds
+		#folder = os.path.join(os.path.abspath('.'), self.docsetFolder)
+		#for dir in os.listdir(folder):
+		#	if os.path.isdir(os.path.join(folder,dir)):
+		#		pl = plistlib.readPlist(
+		#		os.path.join(folder,dir, self.plistPath))
+		#		name = pl['CFBundleName']
+		#		if name == 'Sails.js':
+		#			name = 'SailsJS'
+		#		elif name == 'Backbone.js':
+		#			name = 'BackboneJS'
+		#		elif name == 'AngularDart':
+		#			name = 'Angular.dart'
+		#		elif name == 'D3.js':
+		#			name = 'D3JS'
+		#		elif name == 'Lodash':
+		#			name = 'Lo-Dash'
+		#		elif name == 'Marionette':
+		#			name = 'MarionetteJS'
+		#		elif name == 'Matplotlib':
+		#			name = 'MatPlotLib'
+		#		elif name == 'Moment.js':
+		#			name = 'MomentJS'
+		#		elif name == 'Node.js':
+		#			name = 'NodeJS'
+		#		elif name == 'Underscore.js':
+		#			name = 'UnderscoreJS'
+		#		elif name == 'Vue.js':
+		#			name = 'VueJS'
+		#		elif name == 'Zepto.js':
+		#			name = 'ZeptoJS'
+		#		ds.append({'name':name,'path':os.path.join(folder,dir)})
+		#return ds
 
 	def __getDownloadingDocsets(self):
 		return self.downloading
@@ -309,6 +322,8 @@ class DocsetManager (object):
 			extract_location = os.path.join(self.docsetFolder, 'zendframework3install')
 		docset['status'] = 'Preparing to install: This might take a while.'
 		tar = tarfile.open(filename, 'r:gz')
+		n = [name for name in tar.getnames() if '/' not in name][0]
+		m = os.path.join(self.docsetFolder, n)
 		tar.extractall(path=extract_location, members = self.track_progress(tar, docset, len(tar.getmembers())))
 		tar.close()
 		os.remove(filename)
@@ -456,7 +471,9 @@ class DocsetManager (object):
 			os.rename(p, b)
 			shutil.move(b, m)
 			shutil.rmtree(extract_location)
-		
+		print(docset['iconName'])
+		dbManager = DBManager.DBManager()
+		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], '1.0')
 		self.indexDocset(docset, refresh_main_view)
 	
 	def track_progress(self, members, docset, totalFiles):
@@ -527,12 +544,14 @@ class DocsetManager (object):
 		return types
 	
 	def deleteDocset(self, docset, post_action):
-		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'], 'Ok')
+		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'] + '\n This may take a while.', 'Ok')
 		if but == 1:
+			dbmanager = DBManager.DBManager()
+			dbmanager.DocsetRemoved(docset['id'])
 			shutil.rmtree(docset['path'])
 			docset['status'] = 'online'
-			post_action()
 			docset['path'] = None
+			post_action()
 		
 if __name__ == '__main__':
 	dm = DocsetManager()
