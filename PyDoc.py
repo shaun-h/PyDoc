@@ -1,14 +1,14 @@
 from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView
 import ui
-import threading
 import console
 import os
+
 
 class PyDoc(object):
 	def __init__(self):
 		console.show_activity('Loading...')
-		self.docsetFolder='Docsets'
+		self.docsetFolder = 'Docsets'
 		self.setup()
 		self.dbmanager = DBManager.DBManager()
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
@@ -32,7 +32,7 @@ class PyDoc(object):
 
 	def setup_main_view(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
-		cheatsheets = [] #self.cheatsheet_manager.getDownloadedCheatsheets()
+		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = [] # self.usercontributed_manager.getDownloadedUserContributed()
 		main_view = DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
@@ -45,27 +45,33 @@ class PyDoc(object):
 		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data)
 	
 	def refresh_main_view_data(self):
-		docsets = self.docset_manager.getDownloadedDocsets() 
-		cheatsheets = [] #self.cheatsheet_manager.getDownloadedCheatsheets()
-		usercontributed = [] #self.usercontributed_manager.getDownloadedUserContributed()
+		docsets = self.docset_manager.getDownloadedDocsets()
+		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
+		usercontributed = []
 		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
 	
 	def setup_cheatsheetmanagement_view(self):
-		cheatsheets = [] # self.cheatsheet_manager.getAvailableCheatsheets()
-		return CheatsheetManagementView.get_view(cheatsheets, self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets)
+		return CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets)
+		
+	def show_docset_management_view(self):
+		self.navigation_view.push_view(self.docset_management_view)
 		
 	def show_cheatsheetmanagement_view(self):
+		self.cheatsheet_management_view.data_source.data = self.cheatsheet_manager.getAvailableCheatsheets()
+		self.cheatsheet_management_view.reload()
 		self.navigation_view.push_view(self.cheatsheet_management_view)
+		console.hide_activity()
 		
 	def setup_usercontributedmanagement_view(self):
-		usercontributed = [] # self.usercontributed_manager.getAvailableUserContributed()
+		usercontributed = []
 		return UserContributedManagementView.get_view(usercontributed, self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed)
 		
 	def show_usercontributedmanagement_view(self):
 		self.navigation_view.push_view(self.usercontributed_management_view)
+		console.hide_activity()
 		
 	def setup_settings_view(self):
-		return SettingsView.get_view(self.docset_management_view, self.cheatsheet_management_view, self.usercontributed_management_view)
+		return SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view)
 		
 	def show_settings_view(self, sender):
 		self.navigation_view.push_view(self.settings_view)

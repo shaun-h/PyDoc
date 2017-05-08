@@ -1,8 +1,8 @@
 import ui
 
 class UserContributedManagementView (object):
-	def __init__(self, usercontributed, download_action, refresh_main_view, delete_action, refresh_usercontributed_action):
-		self.data = usercontributed
+	def __init__(self, download_action, refresh_main_view, delete_action, refresh_usercontributed_action):
+		self.data = []
 		self.delete_action = delete_action
 		self.download_action = download_action
 		self.refresh_main_view = refresh_main_view
@@ -90,7 +90,7 @@ def get_view(usercontributed, download_action, refresh_all_views, delete_action,
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'User Contributed Docsets'
-	data = UserContributedManagementView(usercontributed, download_action, refresh_all_views, delete_action, refresh_usercontributed_action)
+	data = UserContributedManagementView(download_action, refresh_all_views, delete_action, refresh_usercontributed_action)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

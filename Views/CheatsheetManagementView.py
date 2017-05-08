@@ -1,8 +1,8 @@
 import ui
 
 class CheatsheetManagementView (object):
-	def __init__(self, cheatsheets, download_action, refresh_main_view, delete_action, refresh_cheatsheets_action):
-		self.data = cheatsheets
+	def __init__(self, download_action, refresh_main_view, delete_action, refresh_cheatsheets_action):
+		self.data = []
 		self.delete_action = delete_action
 		self.download_action = download_action
 		self.refresh_main_view = refresh_main_view
@@ -85,13 +85,13 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(cheatsheets, download_action, refresh_all_views, delete_action, refresh_cheatsheets_action):
+def get_view(download_action, refresh_all_views, delete_action, refresh_cheatsheets_action):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Cheatsheets'
-	data = CheatsheetManagementView(cheatsheets, download_action, refresh_all_views, delete_action, refresh_cheatsheets_action)
+	data = CheatsheetManagementView(download_action, refresh_all_views, delete_action, refresh_cheatsheets_action)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

@@ -12,6 +12,7 @@ import plistlib
 import console
 import shutil
 import sqlite3
+from Managers import DBManager
 
 class Cheatsheet (object):
 	def __init__(self):
@@ -120,9 +121,9 @@ class CheatsheetManager (object):
 		cheatsheets = self.__getOnlineCheatsheets()
 		for d in self.__getDownloadedCheatsheets():
 			for c in cheatsheets:
-				if c.name == d['name']:
+				if c.name == d.name:
 					c.status = 'installed'
-					c.path = d['path']
+					c.path = d.path
 		for d in self.__getDownloadingCheatsheets():
 			for c in cheatsheets:
 				if c.name == d.name:
@@ -140,26 +141,23 @@ class CheatsheetManager (object):
 	
 	def __getDownloadedCheatsheets(self):
 		ds = []
-		folder = os.path.join(os.path.abspath('.'), self.cheatsheetFolder)
-		for dir in os.listdir(folder):
-			if os.path.isdir(os.path.join(folder,dir)):
-				pl = plistlib.readPlist(
-				os.path.join(folder,dir, self.plistPath))
-				name = pl['CFBundleName']
-				ds.append({'name':name,'path':os.path.join(folder,dir)})
+		dbManager = DBManager.DBManager()
+		t = dbManager.InstalledDocsetsByType('cheatsheet')
+		ds = []
+		for d in t:
+			aa = Cheatsheet()
+			aa.name = d[1]
+			aa.id = d[0]
+			aa.path = os.path.join(os.path.abspath('.'),d[2])
+			aa.image = self.__getIconWithName(d[4])
+			ds.append(aa)
 		return ds
 	
 	def __getDownloadingCheatsheets(self):
 		return self.downloading
 		
 	def getDownloadedCheatsheets(self):
-		ds = []
-		for dd in self.__getDownloadedCheatsheets():
-			for feed in self.__getOnlineCheatsheets():
-				if dd['name'] == feed.name:
-					feed.path = dd['path']
-					ds.append(feed)
-		return ds
+		return self.__getDownloadedCheatsheets()
 		
 	def __getCheatsheets(self):
 		server = self.serverManager.getDownloadServer(self.localServer)
@@ -270,9 +268,13 @@ class CheatsheetManager (object):
 		extract_location = self.cheatsheetFolder
 		cheatsheet.status = 'Preparing to install: This might take a while.'
 		tar = tarfile.open(filename, 'r:gz')
+		n = [name for name in tar.getnames() if '/' not in name][0]
+		m = os.path.join(self.cheatsheetFolder, n)
 		tar.extractall(path=extract_location, members = self.track_progress(tar, cheatsheet, len(tar.getmembers())))
 		tar.close()
-		os.remove(filename)		
+		os.remove(filename)
+		dbManager = DBManager.DBManager()
+		dbManager.DocsetInstalled(cheatsheet.name, m, 'cheatsheet', 'cheatsheet', cheatsheet.version)
 		self.indexCheatsheet(cheatsheet, refresh_main_view)
 	
 	def track_progress(self, members, cheatsheet, totalFiles):

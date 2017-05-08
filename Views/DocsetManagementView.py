@@ -64,12 +64,10 @@ class DocsetManagementView (object):
 		if 'path' in sender.action.row and not sender.action.row['path'] == None:
 			self.delete_action(sender.action.row, self.refresh_all_views)
 			sender.action.row['path'] = None
-			#self.refresh()
 		else:
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
 	def refresh(self):
-		#self.data = self.refresh_docsets_action()
 		tv.reload()
 		
 class CustomAction(object):
@@ -99,8 +97,6 @@ def get_view(docsets, download_action, refresh_docsets_action, delete_action, re
 def refresh_view(data):
 	tv.data_source.data = data
 	tv.reload_data()
-	#tv.set_needs_display()
-	#tv.reload()
 
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
