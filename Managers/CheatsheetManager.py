@@ -124,6 +124,7 @@ class CheatsheetManager (object):
 				if c.name == d.name:
 					c.status = 'installed'
 					c.path = d.path
+					c.id = d.id
 		for d in self.__getDownloadingCheatsheets():
 			for c in cheatsheets:
 				if c.name == d.name:
@@ -305,6 +306,8 @@ class CheatsheetManager (object):
 	def deleteCheatsheet(self, cheatsheet, post_action):
 		but = console.alert('Are you sure?', 'Would you like to delete the cheatsheet, ' +  cheatsheet.name, 'Ok')
 		if but == 1:
+			dbmanager = DBManager.DBManager()
+			dbmanager.DocsetRemoved(cheatsheet.id)
 			shutil.rmtree(cheatsheet.path)
 			cheatsheet.status = 'online'
 			post_action()
