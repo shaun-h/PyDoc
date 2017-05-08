@@ -63,10 +63,11 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_usercontributedmanagement_view(self):
-		usercontributed = []
-		return UserContributedManagementView.get_view(usercontributed, self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed)
+		return UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed)
 		
 	def show_usercontributedmanagement_view(self):
+		self.usercontributed_management_view.data_source.data = self.usercontributed_manager.getAvailableUserContributed()
+		self.usercontributed_management_view.reload()
 		self.navigation_view.push_view(self.usercontributed_management_view)
 		console.hide_activity()
 		

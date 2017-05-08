@@ -84,7 +84,7 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(usercontributed, download_action, refresh_all_views, delete_action, refresh_usercontributed_action):
+def get_view(download_action, refresh_all_views, delete_action, refresh_usercontributed_action):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
