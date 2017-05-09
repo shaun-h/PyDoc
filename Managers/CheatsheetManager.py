@@ -25,6 +25,15 @@ class Cheatsheet (object):
 		self.__path = None
 		self.__status = ''
 		self.__stats = ''
+		self.__onlineid = ''
+		
+	@property
+	def onlineid(self):
+		return self.__onlineid
+	
+	@onlineid.setter
+	def onlineid(self, id):
+		self.__onlineid = id	
 		
 	@property
 	def version(self):
@@ -178,7 +187,7 @@ class CheatsheetManager (object):
 			c.globalversion = data['global_version']
 			c.version = d['version']
 			c.image = icon
-			c.id = k
+			c.onlineid = k
 			c.status = 'online'
 			cheatsheets.append(c)
 		return cheatsheets
@@ -211,7 +220,7 @@ class CheatsheetManager (object):
 	def __determineUrlAndDownload(self, cheatsheet, action, refresh_main_view):
 		cheatsheet.stats = 'getting download link'
 		action()
-		downloadLink = self.__getDownloadLink(cheatsheet.id)
+		downloadLink = self.__getDownloadLink(cheatsheet.onlineid)
 		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,cheatsheet,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
@@ -276,6 +285,8 @@ class CheatsheetManager (object):
 		os.remove(filename)
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(cheatsheet.name, m, 'cheatsheet', 'cheatsheet', cheatsheet.version)
+		if cheatsheet in self.downloading:
+			self.downloading.remove(cheatsheet)
 		self.indexCheatsheet(cheatsheet, refresh_main_view)
 	
 	def track_progress(self, members, cheatsheet, totalFiles):

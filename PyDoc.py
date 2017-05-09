@@ -33,7 +33,7 @@ class PyDoc(object):
 	def setup_main_view(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
-		usercontributed = [] # self.usercontributed_manager.getDownloadedUserContributed()
+		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		main_view = DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
@@ -47,7 +47,7 @@ class PyDoc(object):
 	def refresh_main_view_data(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
-		usercontributed = []
+		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
 	
 	def setup_cheatsheetmanagement_view(self):

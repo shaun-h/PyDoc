@@ -14,6 +14,10 @@ import shutil
 import sqlite3
 import base64
 import clipboard
+import os
+import Image
+import io
+from Managers import DBManager
 
 class UserContributed (object):
 	def __init__(self):
@@ -28,6 +32,7 @@ class UserContributed (object):
 		self.__stats = ''
 		self.__archive = ''
 		self.__authorName = ''
+		self.__onlineid = ''
 		
 	@property
 	def version(self):
@@ -76,6 +81,14 @@ class UserContributed (object):
 	@id.setter
 	def id(self, id):
 		self.__id = id	
+	
+	@property
+	def onlineid(self):
+		return self.__onlineid
+	
+	@onlineid.setter
+	def onlineid(self, id):
+		self.__onlineid = id	
 	
 	@property
 	def path(self):
@@ -140,9 +153,10 @@ class UserContributedManager (object):
 		usercontributed = self.__getOnlineUserContributed()
 		for d in self.__getDownloadedUserContributed():
 			for c in usercontributed:
-				if c.name == d['name']:
+				if c.name == d.name:
 					c.status = 'installed'
-					c.path = d['path']
+					c.path = d.path
+					c.id = d.id
 		for d in self.__getDownloadingUserContributed():
 			for c in usercontributed:
 				if c.name == d.name:
@@ -159,27 +173,24 @@ class UserContributedManager (object):
 		return self.usercontributed
 		
 	def __getDownloadedUserContributed(self):
+		dbManager = DBManager.DBManager()
+		t = dbManager.InstalledDocsetsByType('usercontributed')
 		ds = []
-		folder = os.path.join(os.path.abspath('.'), self.userContributedFolder)
-		for dir in os.listdir(folder):
-			if os.path.isdir(os.path.join(folder,dir)):
-				pl = plistlib.readPlist(
-				os.path.join(folder,dir, self.plistPath))
-				name = pl['CFBundleName']
-				ds.append({'name':name,'path':os.path.join(folder,dir)})
+		for d in t:
+			aa = UserContributed()
+			aa.name = d[1]
+			aa.id = d[0]
+			aa.path = os.path.join(os.path.abspath('.'),d[2])
+			aa.image = self.__getLocalIcon(d[2])
+			aa.authorName = d[6]
+			ds.append(aa)
 		return ds
 	
 	def __getDownloadingUserContributed(self):
 		return self.downloading
 		
 	def getDownloadedUserContributed(self):
-		ds = []
-		for dd in self.__getDownloadedUserContributed():
-			for feed in self.__getOnlineUserContributed():
-				if dd['name'] == feed.name:
-					feed.path = dd['path']
-					ds.append(feed)
-		return ds
+		return self.__getDownloadedUserContributed()
 		
 	def __getUserContributed(self):
 		server = self.serverManager.getDownloadServer(self.localServer)
@@ -204,10 +215,16 @@ class UserContributedManager (object):
 				u.image = ui.Image.from_data(imgdata)
 			else:
 				u.image = defaultIcon
-			u.id = k
+			u.onlineid = k
 			u.status = 'online'
 			usercontributed.append(u)
 		return usercontributed
+	
+	def __getLocalIcon(self, path):
+		imgPath = os.path.join(os.path.abspath('.'),path,'icon.png')
+		if not os.path.exists(imgPath):
+			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
+		return ui.Image.named(imgPath)
 	
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
@@ -237,7 +254,7 @@ class UserContributedManager (object):
 	def __determineUrlAndDownload(self, usercontributed, action, refresh_main_view):
 		usercontributed.stats = 'getting download link'
 		action()
-		downloadLink = self.__getDownloadLink(usercontributed.id, usercontributed.archive)
+		downloadLink = self.__getDownloadLink(usercontributed.onlineid, usercontributed.archive)
 		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,usercontributed,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
@@ -296,9 +313,15 @@ class UserContributedManager (object):
 		extract_location = self.userContributedFolder
 		usercontributed.status = 'Preparing to install: This might take a while.'
 		tar = tarfile.open(filename, 'r:gz')
+		n = [name for name in tar.getnames() if '/' not in name][0]
+		m = os.path.join(self.userContributedFolder, n)
 		tar.extractall(path=extract_location, members = self.track_progress(tar, usercontributed, len(tar.getmembers())))
 		tar.close()
-		os.remove(filename)		
+		dbManager = DBManager.DBManager()
+		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', 'image', usercontributed.version, usercontributed.authorName)
+		os.remove(filename)
+		if usercontributed in self.downloading:
+			self.downloading.remove(usercontributed)		
 		self.indexUserContributed(usercontributed, refresh_main_view)
 	
 	def track_progress(self, members, usercontributed, totalFiles):
@@ -329,6 +352,8 @@ class UserContributedManager (object):
 	def deleteUserContributed(self, usercontributed, post_action):
 		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' +  usercontributed.name, 'Ok')
 		if but == 1:
+			dbmanager = DBManager.DBManager()
+			dbmanager.DocsetRemoved(usercontributed.id)
 			shutil.rmtree(usercontributed.path)
 			usercontributed.status = 'online'
 			post_action()
