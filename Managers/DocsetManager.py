@@ -24,7 +24,7 @@ class Docset(object):
 		
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
-		self.localServer = None
+		self.localServer = '' #'http://localhost/feeds/'
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets/Standard'
@@ -471,7 +471,6 @@ class DocsetManager (object):
 			os.rename(p, b)
 			shutil.move(b, m)
 			shutil.rmtree(extract_location)
-		print(docset['iconName'])
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], '1.0')
 		self.indexDocset(docset, refresh_main_view)
