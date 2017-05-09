@@ -24,7 +24,7 @@ class Docset(object):
 		
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
-		self.localServer = '' #'http://localhost/feeds/'
+		self.localServer = None #'http://localhost/feeds/'
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets/Standard'
