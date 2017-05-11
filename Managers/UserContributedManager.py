@@ -218,7 +218,7 @@ class UserContributedManager (object):
 			u.onlineid = k
 			u.status = 'online'
 			usercontributed.append(u)
-		return usercontributed
+		return sorted(usercontributed, key=lambda x: x.name.lower())
 	
 	def __getLocalIcon(self, path):
 		imgPath = os.path.join(os.path.abspath('.'),path,'icon.png')

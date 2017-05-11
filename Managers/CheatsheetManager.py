@@ -190,7 +190,7 @@ class CheatsheetManager (object):
 			c.onlineid = k
 			c.status = 'online'
 			cheatsheets.append(c)
-		return cheatsheets
+		return sorted(cheatsheets, key=lambda x: x.name.lower())
 	
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
