@@ -26,6 +26,7 @@ class UserContributedManagementView (object):
 			cell.detail_text_label.text = status
 		else:
 			cell.detail_text_label.text = self.data[row].stats
+		cell.detail_text_label.text = cell.detail_text_label.text + ' - Contributed by ' + self.data[row].authorName
 		if not self.data[row].image == None:
 			cell.image_view.image = self.data[row].image
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
