@@ -33,6 +33,7 @@ class UserContributed (object):
 		self.__archive = ''
 		self.__authorName = ''
 		self.__onlineid = ''
+		self.__imageData = ''
 		
 	@property
 	def version(self):
@@ -129,6 +130,14 @@ class UserContributed (object):
 	@authorName.setter
 	def authorName(self, an):
 		self.__authorName = an
+	
+	@property
+	def imageData(self):
+		return self.__imageData
+	
+	@imageData.setter
+	def imageData(self, data):
+		self.__imageData = data
 		
 class UserContributedManager (object):
 	def __init__(self, serverManager, iconPath, typeIconPath):
@@ -181,7 +190,13 @@ class UserContributedManager (object):
 			aa.name = d[1]
 			aa.id = d[0]
 			aa.path = os.path.join(os.path.abspath('.'),d[2])
-			aa.image = self.__getLocalIcon(d[2])
+			#aa.image = self.__getLocalIcon(d[2])
+			imgData = str(d[4])
+			if not imgData == '':
+				imgdata = base64.standard_b64decode(imgData)
+				aa.image = ui.Image.from_data(imgdata)
+			else:
+				aa.image = self.__getIconWithName('Other')
 			aa.authorName = d[6]
 			ds.append(aa)
 		return ds
@@ -213,6 +228,7 @@ class UserContributedManager (object):
 			if 'icon' in d.keys():
 				imgdata = base64.standard_b64decode(d['icon'])
 				u.image = ui.Image.from_data(imgdata)
+				u.imageData = d['icon']
 			else:
 				u.image = defaultIcon
 			u.onlineid = k
@@ -317,8 +333,9 @@ class UserContributedManager (object):
 		m = os.path.join(self.userContributedFolder, n)
 		tar.extractall(path=extract_location, members = self.track_progress(tar, usercontributed, len(tar.getmembers())))
 		tar.close()
+		encodedImg = usercontributed.imageData
 		dbManager = DBManager.DBManager()
-		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', 'image', usercontributed.version, usercontributed.authorName)
+		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', str(encodedImg), usercontributed.version, usercontributed.authorName)
 		os.remove(filename)
 		if usercontributed in self.downloading:
 			self.downloading.remove(usercontributed)		
