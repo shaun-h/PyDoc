@@ -18,6 +18,7 @@ import os
 import Image
 import io
 from Managers import DBManager, TypeManager
+from Utilities import LogThread
 
 class UserContributed (object):
 	def __init__(self):
@@ -258,7 +259,7 @@ class UserContributedManager (object):
 			usercontributed.status = 'downloading'
 			self.downloading.append(usercontributed)
 			action()
-			workThread = threading.Thread(target=self.__determineUrlAndDownload, args=(usercontributed,action,refresh_main_view,))
+			workThread = LogThread.LogThread(target=self.__determineUrlAndDownload, args=(usercontributed,action,refresh_main_view,))
 			self.workThreads.append(workThread)
 			workThread.start()
 	
@@ -266,10 +267,10 @@ class UserContributedManager (object):
 		usercontributed.stats = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(usercontributed.onlineid, usercontributed.archive)
-		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,usercontributed,refresh_main_view,))
+		downloadThread = LogThread.LogThread(target=self.downloadFile, args=(downloadLink,usercontributed,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
-		updateThread = threading.Thread(target=self.updateUi, args=(action,downloadThread,))
+		updateThread = LogThread.LogThread(target=self.updateUi, args=(action,downloadThread,))
 		self.uiUpdateThreads.append(updateThread)
 		updateThread.start()
 

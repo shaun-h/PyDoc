@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 from os.path import splitext, basename
 from objc_util import ns, ObjCClass
 from Managers import DBManager, TypeManager
+from Utilities import LogThread
 
 class Docset(object):
 	def __init__(self):
@@ -165,7 +166,7 @@ class DocsetManager (object):
 			docset['status'] = 'downloading'
 			self.downloading.append(docset)
 			action()
-			workThread = threading.Thread(target=self.__determineUrlAndDownload, args=(docset,action,refresh_main_view,))
+			workThread = LogThread.LogThread(target=self.__determineUrlAndDownload, args=(docset,action,refresh_main_view,))
 			self.workThreads.append(workThread)
 			workThread.start()
 			
@@ -173,10 +174,10 @@ class DocsetManager (object):
 		docset['stats'] = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(docset['feed'])
-		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,docset,refresh_main_view,))
+		downloadThread = LogThread.LogThread(target=self.downloadFile, args=(downloadLink,docset,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
-		updateThread = threading.Thread(target=self.updateUi, args=(action,downloadThread,))
+		updateThread = LogThread.LogThread(target=self.updateUi, args=(action,downloadThread,))
 		self.uiUpdateThreads.append(updateThread)
 		updateThread.start()
 

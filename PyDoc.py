@@ -110,8 +110,13 @@ class PyDoc(object):
 	def docset_index_selected_for_viewing(self, url):
 		view = DocsetWebView.get_view(url)
 		self.navigation_view.push_view(view)
-				
+	
 if __name__ == '__main__':
-	py = PyDoc()
-	py.navigation_view.present(hide_title_bar=True)
+	try:
+		py = PyDoc()
+		py.navigation_view.present(hide_title_bar=True)
+	except Exception as e:
+		console.hide_activity()
+		console.alert('Error occured', str(e), 'Ok', hide_cancel_button=True)
+		
 	

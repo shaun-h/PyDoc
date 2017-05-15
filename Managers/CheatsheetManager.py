@@ -13,6 +13,7 @@ import console
 import shutil
 import sqlite3
 from Managers import DBManager, TypeManager
+from Utilities import LogThread
 
 class Cheatsheet (object):
 	def __init__(self):
@@ -208,7 +209,7 @@ class CheatsheetManager (object):
 			cheatsheet.status = 'downloading'
 			self.downloading.append(cheatsheet)
 			action()
-			workThread = threading.Thread(target=self.__determineUrlAndDownload, args=(cheatsheet,action,refresh_main_view,))
+			workThread = LogThread.LogThread(target=self.__determineUrlAndDownload, args=(cheatsheet,action,refresh_main_view,))
 			self.workThreads.append(workThread)
 			workThread.start()
 	
@@ -216,10 +217,10 @@ class CheatsheetManager (object):
 		cheatsheet.stats = 'getting download link'
 		action()
 		downloadLink = self.__getDownloadLink(cheatsheet.onlineid)
-		downloadThread = threading.Thread(target=self.downloadFile, args=(downloadLink,cheatsheet,refresh_main_view,))
+		downloadThread = LogThread.LogThread(target=self.downloadFile, args=(downloadLink,cheatsheet,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
-		updateThread = threading.Thread(target=self.updateUi, args=(action,downloadThread,))
+		updateThread = LogThread.LogThread(target=self.updateUi, args=(action,downloadThread,))
 		self.uiUpdateThreads.append(updateThread)
 		updateThread.start()
 

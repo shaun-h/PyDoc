@@ -20,5 +20,4 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Known Issues
 
-- Not all docsets are viewable yet, they download and install but have a different internal structure.
-- Display errors on screen so the user knows when something hasn't worked
+- Implement better error handling currently all errors are treated like they are fatal
