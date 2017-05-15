@@ -18,6 +18,12 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 [Dash](https://kapeli.com/dash)
 
+## Road Map
+
+- Add searching
+- Docset update functionality
+- Dark theme
+
 ## Known Issues
 
 - Implement better error handling currently all errors are treated like they are fatal
