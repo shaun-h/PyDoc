@@ -17,7 +17,7 @@ import clipboard
 import os
 import Image
 import io
-from Managers import DBManager
+from Managers import DBManager, TypeManager
 
 class UserContributed (object):
 	def __init__(self):
@@ -141,6 +141,7 @@ class UserContributed (object):
 		
 class UserContributedManager (object):
 	def __init__(self, serverManager, iconPath, typeIconPath):
+		self.typeManager = TypeManager.TypeManager(typeIconPath)
 		self.serverManager = serverManager
 		self.iconPath = iconPath
 		self.typeIconPath = typeIconPath
@@ -248,12 +249,6 @@ class UserContributedManager (object):
 			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
 		return ui.Image.named(imgPath)
 	
-	def __getTypeIconWithName(self, name):
-		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, name+'.png')
-		if not os.path.exists(imgPath):
-			imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, 'Unknown.png')
-		return ui.Image.named(imgPath)
-	
 	def __createUserContributedFolder(self):
 		if not os.path.exists(self.userContributedFolder):
 			os.mkdir(self.userContributedFolder)
@@ -339,7 +334,7 @@ class UserContributedManager (object):
 		os.remove(filename)
 		if usercontributed in self.downloading:
 			self.downloading.remove(usercontributed)		
-		self.indexUserContributed(usercontributed, refresh_main_view)
+		self.indexUserContributed(usercontributed, refresh_main_view, m)
 	
 	def track_progress(self, members, usercontributed, totalFiles):
 		i = 0
@@ -349,8 +344,24 @@ class UserContributedManager (object):
 			usercontributed.status = 'installing: ' + str(round(done,2)) + '% ' + str(i) + ' / '+ str(totalFiles) 
 			yield member
 	
-	def indexUserContributed(self, usercontributed, refresh_main_view):
+	def indexUserContributed(self, usercontributed, refresh_main_view, path):
 		usercontributed.status = 'indexing'
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT count(*) FROM sqlite_master WHERE type = \'table\' AND name = \'searchIndex\''
+		c = conn.execute(sql)
+		data = c.fetchone()
+		if int(data[0]) == 0:
+			sql = 'CREATE TABLE searchIndex(rowid INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)'
+			c = conn.execute(sql)
+			conn.commit()
+			sql = 'SELECT f.ZPATH, m.ZANCHOR, t.ZTOKENNAME, ty.ZTYPENAME, t.rowid FROM ZTOKEN t, ZTOKENTYPE ty, ZFILEPATH f, ZTOKENMETAINFORMATION m WHERE ty.Z_PK = t.ZTOKENTYPE AND f.Z_PK = m.ZFILE AND m.ZTOKEN = t.Z_PK ORDER BY t.ZTOKENNAME'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				conn.execute("insert into searchIndex values (?, ?, ?, ?)", (t[4], t[2], self.typeManager.getTypeForName(t[3]).name, t[0] ))
+				conn.commit()
+		conn.close()
 		self.postProcess(usercontributed, refresh_main_view)
 		
 	def postProcess(self, usercontributed, refresh_main_view):
@@ -386,7 +397,7 @@ class UserContributedManager (object):
 		data = c.fetchall()
 		conn.close()
 		for t in data:
-			types.append({'name':t[0], 'image':self.__getTypeIconWithName(t[0])})
+			types.append(self.typeManager.getTypeForName(t[0]))
 		return types
 	
 	def getIndexesbyTypeForUserContributed(self, usercontributed, type):
@@ -394,13 +405,12 @@ class UserContributedManager (object):
 		path = usercontributed.path
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type['name'] + '\''
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type.name + '\''
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
-		img = self.__getTypeIconWithName(type['name'])
 		for t in data:
-			indexes.append({'type':{'name':t[0], 'image':img}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForUserContributed(self, usercontributed):
@@ -413,7 +423,7 @@ class UserContributedManager (object):
 		data = c.fetchall()
 		conn.close()
 		for i in data:
-			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'image':self.__getTypeIconWithName(t[0]), 'name':t[1],'path':t[2]})
 		return types
 		
 if __name__ == '__main__':

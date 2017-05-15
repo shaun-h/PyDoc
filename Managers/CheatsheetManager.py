@@ -12,7 +12,7 @@ import plistlib
 import console
 import shutil
 import sqlite3
-from Managers import DBManager
+from Managers import DBManager, TypeManager
 
 class Cheatsheet (object):
 	def __init__(self):
@@ -109,6 +109,7 @@ class Cheatsheet (object):
 		
 class CheatsheetManager (object):
 	def __init__(self, serverManager, iconPath, typeIconPath):
+		self.typeManager = TypeManager.TypeManager(typeIconPath)
 		self.serverManager = serverManager
 		self.iconPath = iconPath
 		self.typeIconPath = typeIconPath
@@ -196,12 +197,6 @@ class CheatsheetManager (object):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		if not os.path.exists(imgPath):
 			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
-		return ui.Image.named(imgPath)
-	
-	def __getTypeIconWithName(self, name):
-		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, name+'.png')
-		if not os.path.exists(imgPath):
-			imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, 'Unknown.png')
 		return ui.Image.named(imgPath)
 	
 	def __createCheatsheetFolder(self):
@@ -334,7 +329,7 @@ class CheatsheetManager (object):
 		data = c.fetchall()
 		conn.close()
 		for t in data:
-			types.append({'name':t[0], 'image':self.__getTypeIconWithName(t[0])})
+			types.append(self.typeManager.getTypeForName(t[0]))
 		return types
 	
 	def getIndexesbyTypeForCheatsheet(self, cheatsheet, type):
@@ -342,13 +337,12 @@ class CheatsheetManager (object):
 		path = cheatsheet.path
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type['name'] + '\''
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type.name + '\''
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
-		img = self.__getTypeIconWithName(type['name'])
 		for t in data:
-			indexes.append({'type':{'name':t[0], 'image':img}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForCheatsheet(self, cheatsheet):
@@ -361,7 +355,7 @@ class CheatsheetManager (object):
 		data = c.fetchall()
 		conn.close()
 		for i in data:
-			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return types
 		
 if __name__ == '__main__':
