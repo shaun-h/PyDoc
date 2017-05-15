@@ -15,7 +15,7 @@ import shutil
 from urllib.parse import urlparse
 from os.path import splitext, basename
 from objc_util import ns, ObjCClass
-from Managers import DBManager
+from Managers import DBManager, TypeManager
 
 class Docset(object):
 	def __init__(self):
@@ -24,7 +24,8 @@ class Docset(object):
 		
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
-		self.localServer = None #'http://localhost/feeds/'
+		self.typeManager = TypeManager.TypeManager(typeIconPath)
+		self.localServer = None # 'http://localhost/feeds/'
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets/Standard'
@@ -164,12 +165,6 @@ class DocsetManager (object):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		if not os.path.exists(imgPath):
 			imgPath = os.path.join(os.path.abspath('.'), self.iconPath, 'Other.png')
-		return ui.Image.named(imgPath)
-	
-	def __getTypeIconWithName(self, name):
-		imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, name+'.png')
-		if not os.path.exists(imgPath):
-			imgPath = os.path.join(os.path.abspath('.'), self.typeIconPath, 'Unknown.png')
 		return ui.Image.named(imgPath)
 	
 	def __checkDocsetCanDownload(self, docset):
@@ -473,7 +468,7 @@ class DocsetManager (object):
 			shutil.rmtree(extract_location)
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], '1.0')
-		self.indexDocset(docset, refresh_main_view)
+		self.indexDocset(docset, refresh_main_view, m)
 	
 	def track_progress(self, members, docset, totalFiles):
 		i = 0
@@ -485,8 +480,31 @@ class DocsetManager (object):
 	
 	
 	
-	def indexDocset(self, docset, refresh_main_view):
+	def indexDocset(self, docset, refresh_main_view, path):
 		docset['status'] = 'indexing'
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT count(*) FROM sqlite_master WHERE type = \'table\' AND name = \'searchIndex\''
+		c = conn.execute(sql)
+		data = c.fetchone()
+		if int(data[0]) == 0:
+			sql = 'CREATE TABLE searchIndex(rowid INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)'
+			c = conn.execute(sql)
+			conn.commit()
+			sql = 'SELECT f.ZPATH, m.ZANCHOR, t.ZTOKENNAME, ty.ZTYPENAME, t.rowid FROM ZTOKEN t, ZTOKENTYPE ty, ZFILEPATH f, ZTOKENMETAINFORMATION m WHERE ty.Z_PK = t.ZTOKENTYPE AND f.Z_PK = m.ZFILE AND m.ZTOKEN = t.Z_PK ORDER BY t.ZTOKENNAME'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				conn.execute("insert into searchIndex values (?, ?, ?, ?)", (t[4], t[2], self.typeManager.getTypeForName(t[3]).name, t[0] ))
+				conn.commit()
+		conn.close()
+		
+		#check if search table exists
+		# SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'name'
+		# no
+		# create it and populate it
+		# CREATE TABLE searchIndex(rowid INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)
+		# SELECT f.ZPATH, m.ZANCHOR, t.ZTOKENNAME, ty.ZTYPENAME, t.rowid FROM ZTOKEN t, ZTOKENTYPE ty, ZFILEPATH f, ZTOKENMETAINFORMATION m WHERE ty.Z_PK = t.ZTOKENTYPE AND f.Z_PK = m.ZFILE AND m.ZTOKEN = t.Z_PK
 		self.postProcess(docset, refresh_main_view)
 		
 	def postProcess(self, docset, refresh_main_view):
@@ -512,7 +530,7 @@ class DocsetManager (object):
 		data = c.fetchall()
 		conn.close()
 		for t in data:
-			types.append({'name':t[0], 'image':self.__getTypeIconWithName(t[0])})
+			types.append(self.typeManager.getTypeForName(t[0]))
 		return types
 	
 	def getIndexesbyTypeForDocset(self, docset, type):
@@ -520,13 +538,12 @@ class DocsetManager (object):
 		path = docset['path']
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type['name'] + '\''
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type.name + '\''
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
-		img = self.__getTypeIconWithName(type['name'])
 		for t in data:
-			indexes.append({'type':{'name':t[0], 'image':img}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForDocset(self, docset):
@@ -539,7 +556,7 @@ class DocsetManager (object):
 		data = c.fetchall()
 		conn.close()
 		for i in data:
-			indexes.append({'type':{'name':t[0], 'image':self.__getTypeIconWithName(t[0])}, 'name':t[1],'path':t[2]})
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return types
 	
 	def deleteDocset(self, docset, post_action):

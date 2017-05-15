@@ -30,8 +30,8 @@ class DocsetIndexView (object):
 		cell = ui.TableViewCell()
 		cell.text_label.text = self.data[row]['name']
 		cell.accessory_type = 'disclosure_indicator'
-		if not self.data[row]['type']['image'] == None:
-			cell.image_view.image = self.data[row]['type']['image']
+		if not self.data[row]['type'].icon == None:
+			cell.image_view.image = self.data[row]['type'].icon
 		return cell
 	
 tv = ui.TableView()

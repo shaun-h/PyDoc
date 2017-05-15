@@ -18,10 +18,10 @@ class DocsetView (object):
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell()
-		cell.text_label.text = self.data[row]['name']
+		cell.text_label.text = self.data[row].plural
 		cell.accessory_type = 'disclosure_indicator'
-		if not self.data[row]['image'] == None:
-			cell.image_view.image = self.data[row]['image']
+		if not self.data[row].icon == None:
+			cell.image_view.image = self.data[row].icon
 		return cell
 	
 tv = ui.TableView()
