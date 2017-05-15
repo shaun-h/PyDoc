@@ -438,9 +438,7 @@ class DocsetManager (object):
 			done = 100 * i / totalFiles
 			docset['status'] = 'installing: ' + str(round(done,2)) + '% ' + str(i) + ' / '+ str(totalFiles) 
 			yield member
-	
-	
-	
+		
 	def indexDocset(self, docset, refresh_main_view, path):
 		docset['status'] = 'indexing'
 		indexPath = os.path.join(path, self.indexPath)
@@ -488,7 +486,7 @@ class DocsetManager (object):
 		path = docset['path']
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type FROM searchIndex GROUP BY type'
+		sql = 'SELECT type FROM searchIndex GROUP BY type ORDER BY type COLLATE NOCASE'
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
@@ -501,8 +499,8 @@ class DocsetManager (object):
 		path = docset['path']
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type, name, path FROM searchIndex WHERE type = \'' + type.name + '\''
-		c = conn.execute(sql)
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = (?) ORDER BY name COLLATE NOCASE'
+		c = conn.execute(sql, (type.name,))
 		data = c.fetchall()
 		conn.close()
 		for t in data:
@@ -514,7 +512,7 @@ class DocsetManager (object):
 		path = docset['path']
 		indexPath = os.path.join(path, self.indexPath)
 		conn = sqlite3.connect(indexPath)
-		sql = 'SELECT type, name, path FROM searchIndex'
+		sql = 'SELECT type, name, path FROM searchIndex ORDER BY name COLLATE NOCASE'
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
