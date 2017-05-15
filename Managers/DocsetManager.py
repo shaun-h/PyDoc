@@ -85,14 +85,7 @@ class DocsetManager (object):
 		return docsets
 	
 	def getDownloadedDocsets(self):
-		ds = []
 		return self.__getDownloadedDocsets()
-			#for feed in self.docsetFeeds:
-				#if dd['name'] == feed['name']:
-				#	feed['path'] = dd['path']
-				#	feed['']
-				#	ds.append(feed)
-		return ds
 	
 	def __docsetFeedToDocset(self, feed):
 		return feed
@@ -109,38 +102,6 @@ class DocsetManager (object):
 			aa['image'] = self.__getIconWithName(d[4])
 			ds.append(aa)
 		return ds
-		#folder = os.path.join(os.path.abspath('.'), self.docsetFolder)
-		#for dir in os.listdir(folder):
-		#	if os.path.isdir(os.path.join(folder,dir)):
-		#		pl = plistlib.readPlist(
-		#		os.path.join(folder,dir, self.plistPath))
-		#		name = pl['CFBundleName']
-		#		if name == 'Sails.js':
-		#			name = 'SailsJS'
-		#		elif name == 'Backbone.js':
-		#			name = 'BackboneJS'
-		#		elif name == 'AngularDart':
-		#			name = 'Angular.dart'
-		#		elif name == 'D3.js':
-		#			name = 'D3JS'
-		#		elif name == 'Lodash':
-		#			name = 'Lo-Dash'
-		#		elif name == 'Marionette':
-		#			name = 'MarionetteJS'
-		#		elif name == 'Matplotlib':
-		#			name = 'MatPlotLib'
-		#		elif name == 'Moment.js':
-		#			name = 'MomentJS'
-		#		elif name == 'Node.js':
-		#			name = 'NodeJS'
-		#		elif name == 'Underscore.js':
-		#			name = 'UnderscoreJS'
-		#		elif name == 'Vue.js':
-		#			name = 'VueJS'
-		#		elif name == 'Zepto.js':
-		#			name = 'ZeptoJS'
-		#		ds.append({'name':name,'path':os.path.join(folder,dir)})
-		#return ds
 
 	def __getDownloadingDocsets(self):
 		return self.downloading
@@ -497,14 +458,16 @@ class DocsetManager (object):
 			for t in data:
 				conn.execute("insert into searchIndex values (?, ?, ?, ?)", (t[4], t[2], self.typeManager.getTypeForName(t[3]).name, t[0] ))
 				conn.commit()
+		else:
+			sql = 'SELECT rowid, type FROM searchIndex'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				newType = self.typeManager.getTypeForName(t[1])
+				if not newType == None and not newType.name == t[1]:
+					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
+				conn.commit()
 		conn.close()
-		
-		#check if search table exists
-		# SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'name'
-		# no
-		# create it and populate it
-		# CREATE TABLE searchIndex(rowid INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)
-		# SELECT f.ZPATH, m.ZANCHOR, t.ZTOKENNAME, ty.ZTYPENAME, t.rowid FROM ZTOKEN t, ZTOKENTYPE ty, ZFILEPATH f, ZTOKENMETAINFORMATION m WHERE ty.Z_PK = t.ZTOKENTYPE AND f.Z_PK = m.ZFILE AND m.ZTOKEN = t.Z_PK
 		self.postProcess(docset, refresh_main_view)
 		
 	def postProcess(self, docset, refresh_main_view):

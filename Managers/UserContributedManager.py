@@ -361,6 +361,15 @@ class UserContributedManager (object):
 			for t in data:
 				conn.execute("insert into searchIndex values (?, ?, ?, ?)", (t[4], t[2], self.typeManager.getTypeForName(t[3]).name, t[0] ))
 				conn.commit()
+		else:
+			sql = 'SELECT rowid, type FROM searchIndex'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				newType = self.typeManager.getTypeForName(t[1])
+				if not newType == None and not newType.name == t[1]:
+					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
+				conn.commit()
 		conn.close()
 		self.postProcess(usercontributed, refresh_main_view)
 		

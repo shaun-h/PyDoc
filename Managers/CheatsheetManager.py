@@ -282,7 +282,7 @@ class CheatsheetManager (object):
 		dbManager.DocsetInstalled(cheatsheet.name, m, 'cheatsheet', 'cheatsheet', cheatsheet.version)
 		if cheatsheet in self.downloading:
 			self.downloading.remove(cheatsheet)
-		self.indexCheatsheet(cheatsheet, refresh_main_view)
+		self.indexCheatsheet(cheatsheet, refresh_main_view, m)
 	
 	def track_progress(self, members, cheatsheet, totalFiles):
 		i = 0
@@ -292,8 +292,33 @@ class CheatsheetManager (object):
 			cheatsheet.status = 'installing: ' + str(round(done,2)) + '% ' + str(i) + ' / '+ str(totalFiles) 
 			yield member
 	
-	def indexCheatsheet(self, cheatsheet, refresh_main_view):
+	def indexCheatsheet(self, cheatsheet, refresh_main_view, path):
 		cheatsheet.status = 'indexing'
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT count(*) FROM sqlite_master WHERE type = \'table\' AND name = \'searchIndex\''
+		c = conn.execute(sql)
+		data = c.fetchone()
+		if int(data[0]) == 0:
+			sql = 'CREATE TABLE searchIndex(rowid INTEGER PRIMARY KEY, name TEXT, type TEXT, path TEXT)'
+			c = conn.execute(sql)
+			conn.commit()
+			sql = 'SELECT f.ZPATH, m.ZANCHOR, t.ZTOKENNAME, ty.ZTYPENAME, t.rowid FROM ZTOKEN t, ZTOKENTYPE ty, ZFILEPATH f, ZTOKENMETAINFORMATION m WHERE ty.Z_PK = t.ZTOKENTYPE AND f.Z_PK = m.ZFILE AND m.ZTOKEN = t.Z_PK ORDER BY t.ZTOKENNAME'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				conn.execute("insert into searchIndex values (?, ?, ?, ?)", (t[4], t[2], self.typeManager.getTypeForName(t[3]).name, t[0] ))
+				conn.commit()
+		else:
+			sql = 'SELECT rowid, type FROM searchIndex'
+			c = conn.execute(sql)
+			data = c.fetchall()
+			for t in data:
+				newType = self.typeManager.getTypeForName(t[1])
+				if not newType == None and not newType.name == t[1]:
+					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
+				conn.commit()
+		conn.close()
 		self.postProcess(cheatsheet, refresh_main_view)
 		
 	def postProcess(self, cheatsheet, refresh_main_view):
