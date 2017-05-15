@@ -145,16 +145,16 @@ class DocsetManager (object):
 		elif feed == 'Apple_API_Reference.xml':
 			cont = False
 			title = 'Apple API Reference'
-			message = 'To install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the Apple API Reference docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS Compatible Docset\"\n3. Transfer the resulting docset using iTunes File Sharing'
+			message = 'To install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the Apple API Reference docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS Compatible Docset\"\n3. Transfer the resulting docset using the transfer function'
 		elif feed == 'Apple_Guides_and_Sample_Code.xml':
 			cont = False
 			title = 'Apple Guides and Sample Code'
-			message = 'To install the Apple Guides and Sample Code docset you need to:\n\n1. Download the docset in Xcode 8\'s Preferences > Components > Documentation\n2.Transfer it to Dash for iOS using iTunes File Sharing'
+			message = 'To install the Apple Guides and Sample Code docset you need to:\n\n1. Download the docset in Xcode 8\'s Preferences > Components > Documentation\n2.Transfer the resulting docset using the transfer function'
 		elif feed == 'OS_X.xml' or feed == 'macOS.xml' or feed == 'watchOS.xml' or feed == 'iOS.xml' or feed == 'tvOS.xml':
 			cont = False
 			title = 'Apple API Reference'
 			name = docset['name']
-			message = 'There is no '+name+' docset. The documentation for '+name+' can be found inside the Apple API Reference docset. \n\nTo install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS-compatible Docset\"\n3. Transfer the resulting docset using iTunes File Sharing'
+			message = 'There is no '+name+' docset. The documentation for '+name+' can be found inside the Apple API Reference docset. \n\nTo install the Apple API Reference docset you need to:\n\n1. Use Dash for macOS to install the docset from Preferences > Downloads\n2. Go to Preferences > Docsets, right click the Apple API Reference docset and select \"Generate iOS-compatible Docset\"\n3. Transfer the resulting docset using the transfer function'
 				
 		if cont == False:
 			console.alert(title, message,'Ok', hide_cancel_button=True)

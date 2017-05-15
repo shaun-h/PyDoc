@@ -23,6 +23,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 - Add searching
 - Docset update functionality
 - Dark theme
+- Transfer functionality
 
 ## Known Issues
 
