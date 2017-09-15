@@ -81,7 +81,7 @@ class PyDoc(object):
 		 return DocsetView.get_view()
 		
 	def setup_docsetindex_view(self):
-		pass
+		return DocsetIndexView.get_view()
 		
 	def setup_docsetweb_view(self):
 		pass
@@ -93,34 +93,43 @@ class PyDoc(object):
 		types = self.docset_manager.getTypesForDocset(docset)
 		self.docsetView.data_source.update_with_docset(docset, types, self.docset_type_selected_for_viewing)
 		self.docsetView.name = docset['name']
+		self.docsetView.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def docset_type_selected_for_viewing(self, docset, type):
 		indexes = self.docset_manager.getIndexesbyTypeForDocset(docset, type)
-		view = DocsetIndexView.get_view(docset, indexes, self.docset_index_selected_for_viewing, 'docset')
-		self.navigation_view.push_view(view)
+		self.docsetIndexView.data_source.update_with_docset(docset, indexes, self.docset_index_selected_for_viewing, 'docset')
+		self.docsetView.name = docset['name']
+		self.docsetIndexView.reload()
+		self.navigation_view.push_view(self.docsetIndexView)
 	
 	def cheatsheet_selected_for_viewing(self, cheatsheet):
 		types = self.cheatsheet_manager.getTypesForCheatsheet(cheatsheet)
 		self.docsetView.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
 		self.docsetView.name = docset.name
+		self.docsetView.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def cheatsheet_type_selected_for_viewing(self, cheatsheet, type):
 		indexes = self.cheatsheet_manager.getIndexesbyTypeForCheatsheet(cheatsheet, type)
-		view = DocsetIndexView.get_view(cheatsheet, indexes, self.docset_index_selected_for_viewing, 'cheatsheet')
-		self.navigation_view.push_view(view)
+		self.docsetIndexView.data_source.update_with_docset(cheatsheet, indexes, self.docset_index_selected_for_viewing, 'cheatsheet')
+		self.docsetView.name = docset.name
+		self.docsetIndexView.reload()
+		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def usercontributed_selected_for_viewing(self, usercontributed):
 		types = self.usercontributed_manager.getTypesForUserContributed(usercontributed)
 		self.docsetView.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
 		self.docsetView.name = docset.name
+		self.docsetView.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def usercontributed_type_selected_for_viewing(self, usercontributed, type):
 		indexes = self.usercontributed_manager.getIndexesbyTypeForUserContributed(usercontributed, type)
-		view = DocsetIndexView.get_view(usercontributed, indexes, self.docset_index_selected_for_viewing, 'usercontributed')
-		self.navigation_view.push_view(view)
+		self.docsetIndexView.data_source.update_with_docset(usercontributed, indexes, self.docset_index_selected_for_viewing, 'usercontributed')
+		self.docsetView.name = docset.name
+		self.docsetIndexView.reload()
+		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
 		view = DocsetWebView.get_view(url)

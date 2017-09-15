@@ -4,11 +4,11 @@ import os
 from urllib.parse import quote
 
 class DocsetIndexView (object):
-	def __init__(self, docset, indexes, indexSelectCallback, docsetType):
-		self.data = indexes
-		self.docset = docset
-		self.indexSelectCallback = indexSelectCallback
-		self.docsetType = docsetType
+	def __init__(self):
+		self.data = []
+		self.docset = None
+		self.indexSelectCallback = None
+		self.docsetType = None
 		
 	def tableview_did_select(self, tableview, section, row):
 		if self.docsetType == 'docset':
@@ -34,21 +34,21 @@ class DocsetIndexView (object):
 			cell.image_view.image = self.data[row]['type'].icon
 		return cell
 	
-tv = ui.TableView()
-def get_view(docsets, indexes, indexSelectCallback, docsetType):
+	def update_with_docset(self, docset, indexes, indexSelectCallback, docsetType):
+		self.data = indexes
+		self.docset = docset
+		self.indexSelectCallback = indexSelectCallback
+		self.docsetType = docsetType
+
+
+def get_view():
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetIndexView(docsets, indexes, indexSelectCallback, docsetType)
+	data = DocsetIndexView()
 	tv.delegate = data
 	tv.data_source = data
-	if docsetType == 'docset':
-		tv.name = docsets['name']
-	elif docsetType == 'cheatsheet':
-		tv.name = docsets.name
-	elif docsetType == 'usercontributed':
-		tv.name = docsets.name
 	return tv
