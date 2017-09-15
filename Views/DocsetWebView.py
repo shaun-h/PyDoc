@@ -1,7 +1,5 @@
 import ui 
 
-wv = ui.WebView()
-def get_view(url):
-	wv = ui.WebView()
-	wv.load_url(url)
+def get_view():
+	wv = ui.WebView() 
 	return wv

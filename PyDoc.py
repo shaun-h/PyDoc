@@ -84,7 +84,7 @@ class PyDoc(object):
 		return DocsetIndexView.get_view()
 		
 	def setup_docsetweb_view(self):
-		pass
+		return DocsetWebView.get_view()
 		
 	def show_settings_view(self, sender):
 		self.navigation_view.push_view(self.settings_view)
@@ -132,8 +132,8 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
-		view = DocsetWebView.get_view(url)
-		self.navigation_view.push_view(view)
+		self.docsetWebView.load_url(url)
+		self.navigation_view.push_view(self.docsetWebView)
 	
 if __name__ == '__main__':
 	try:
