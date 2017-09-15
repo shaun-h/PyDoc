@@ -106,28 +106,28 @@ class PyDoc(object):
 	def cheatsheet_selected_for_viewing(self, cheatsheet):
 		types = self.cheatsheet_manager.getTypesForCheatsheet(cheatsheet)
 		self.docsetView.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
-		self.docsetView.name = docset.name
+		self.docsetView.name = cheatsheet.name
 		self.docsetView.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def cheatsheet_type_selected_for_viewing(self, cheatsheet, type):
 		indexes = self.cheatsheet_manager.getIndexesbyTypeForCheatsheet(cheatsheet, type)
 		self.docsetIndexView.data_source.update_with_docset(cheatsheet, indexes, self.docset_index_selected_for_viewing, 'cheatsheet')
-		self.docsetView.name = docset.name
+		self.docsetView.name = cheatsheet.name
 		self.docsetIndexView.reload()
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def usercontributed_selected_for_viewing(self, usercontributed):
 		types = self.usercontributed_manager.getTypesForUserContributed(usercontributed)
 		self.docsetView.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
-		self.docsetView.name = docset.name
+		self.docsetView.name = usercontributed.name
 		self.docsetView.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def usercontributed_type_selected_for_viewing(self, usercontributed, type):
 		indexes = self.usercontributed_manager.getIndexesbyTypeForUserContributed(usercontributed, type)
 		self.docsetIndexView.data_source.update_with_docset(usercontributed, indexes, self.docset_index_selected_for_viewing, 'usercontributed')
-		self.docsetView.name = docset.name
+		self.docsetView.name = usercontributed.name
 		self.docsetIndexView.reload()
 		self.navigation_view.push_view(self.docsetIndexView)
 		
