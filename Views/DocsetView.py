@@ -2,10 +2,10 @@
 import ui
 
 class DocsetView (object):
-	def __init__(self, docset, types, indexSelectCallback):
-		self.data = types
-		self.docset = docset
-		self.indexSelectCallback = indexSelectCallback
+	def __init__(self):
+		self.data = []
+		self.docset = None
+		self.indexSelectCallback = None
 		
 	def tableview_did_select(self, tableview, section, row):
 		self.indexSelectCallback(self.docset, self.data[row])
@@ -24,21 +24,19 @@ class DocsetView (object):
 			cell.image_view.image = self.data[row].icon
 		return cell
 	
-tv = ui.TableView()
-def get_view(docsets, types, indexSelectCallback, docsetType):
+	def update_with_docset(self, docset, types, indexSelectCallback):
+		 self.data = types
+		 self.docset = docset
+		 self.indexSelectCallback = indexSelectCallback
+	
+def get_view():
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetView(docsets, types, indexSelectCallback)
+	data = DocsetView()
 	tv.delegate = data
 	tv.data_source = data
-	if docsetType == 'docset':
-		tv.name = docsets['name']
-	elif docsetType == 'cheatsheet':
-		tv.name = docsets.name
-	elif docsetType == 'usercontributed':
-		tv.name = docsets.name
 	return tv
