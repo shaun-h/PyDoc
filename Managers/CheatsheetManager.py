@@ -371,6 +371,32 @@ class CheatsheetManager (object):
 			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return indexes
 	
+	def getIndexesbyTypeAndNameForDocset(self, cheatsheet, typeName, name):
+		indexes = []
+		path = cheatsheet.path
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT type, name, path FROM searchIndex WHERE type = (?) AND name LIKE (?) ORDER BY name COLLATE NOCASE'
+		c = conn.execute(sql, (typeName, name,))
+		data = c.fetchall()
+		conn.close()
+		for t in data:
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+		return indexes
+		
+	def getIndexesByNameForDocset(self, cheatsheet, name):
+		indexes = []
+		path = cheatsheet.path
+		indexPath = os.path.join(path, self.indexPath)
+		conn = sqlite3.connect(indexPath)
+		sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
+		c = conn.execute(sql, (name,))
+		data = c.fetchall()
+		conn.close()
+		for t in data:
+			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+		return indexes
+	
 	def getIndexesForCheatsheet(self, cheatsheet):
 		indexes = []
 		path = cheatsheet.path

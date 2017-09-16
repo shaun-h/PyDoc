@@ -135,6 +135,9 @@ class PyDoc(object):
 		self.docsetWebView.load_url(url)
 		self.navigation_view.push_view(self.docsetWebView)
 	
+	def search_all_docsets(self, name):
+		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
+	
 if __name__ == '__main__':
 	try:
 		py = PyDoc()
