@@ -1,5 +1,6 @@
 from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView
+from Utilities import UISearchControllerWrapper
 import ui
 import console
 import os
@@ -37,7 +38,7 @@ class PyDoc(object):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		main_view = DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing)
+		main_view = v = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -78,7 +79,7 @@ class PyDoc(object):
 		return SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view)
 		
 	def setup_docset_view(self):
-		 return DocsetView.get_view()
+		return DocsetView.get_view()
 		
 	def setup_docsetindex_view(self):
 		return DocsetIndexView.get_view()
@@ -132,11 +133,17 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
+		print(url)
 		self.docsetWebView.load_url(url)
 		self.navigation_view.push_view(self.docsetWebView)
 	
 	def search_all_docsets(self, name):
+		ret = []
 		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
+		for s in standard:
+			for a in standard[s]:
+				ret.append(a)
+		return ret
 	
 if __name__ == '__main__':
 	try:

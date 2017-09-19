@@ -26,7 +26,7 @@ class Docset(object):
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
 		self.typeManager = TypeManager.TypeManager(typeIconPath)
-		self.localServer = None # 'http://localhost/feeds/'
+		self.localServer = 'http://localhost/feeds/'
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets/Standard'
@@ -548,12 +548,26 @@ class DocsetManager (object):
 		return types
 	
 	def getIndexesbyNameForAllDocset(self, name):
-		docsets = self.getDownloadedDocsets()
-		indexes = {}
-		for d in docsets:
-			ind = self.getIndexesbyNameForDocset(d, name)
-			indexes[d['name']] = ind
-		return indexes
+		if name == None or name == '':
+			return []
+		else:
+			name = '%'+name+'%'
+			docsets = self.getDownloadedDocsets()
+			indexes = {}
+			for d in docsets:
+				ind = []
+				path = d['path']
+				indexPath = os.path.join(path, self.indexPath)
+				conn = sqlite3.connect(indexPath)
+				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
+				c = conn.execute(sql, (name,))
+				data = c.fetchall()
+				conn.close()
+				for t in data:
+					ind.append({'name':t[1]})#,'path':t[2]})
+					# indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+				indexes[d['name']] = ind
+			return indexes
 			
 	
 	def deleteDocset(self, docset, post_action):
