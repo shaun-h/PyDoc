@@ -410,6 +410,36 @@ class CheatsheetManager (object):
 			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
 		return types
 		
+	def getIndexesbyNameForAllCheatsheet(self, name):
+		if name == None or name == '':
+			return []
+		else:
+			name = '%'+name+'%'
+			docsets = self.getDownloadedCheatsheets()
+			indexes = {}
+			for d in docsets:
+				ind = []
+				path = d.path
+				indexPath = os.path.join(path, self.indexPath)
+				conn = sqlite3.connect(indexPath)
+				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
+				c = conn.execute(sql, (name,))
+				data = c.fetchall()
+				conn.close()
+				dTypes = {}
+				for t in data:
+					url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
+					url = url.replace(' ', '%20')
+					type = None
+					if t[0] in dTypes.keys():
+						type= dTypes[t[0]]
+					else:
+						type = self.typeManager.getTypeForName(t[0])
+						dTypes[t[0]] = type
+					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':d.name,'type':type})
+				indexes[d.name] = ind
+			return indexes
+		
 if __name__ == '__main__':
 	import ServerManager
 	c = CheatsheetManager(ServerManager.ServerManager(), '../Images/icons')

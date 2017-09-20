@@ -139,9 +139,17 @@ class PyDoc(object):
 	def search_all_docsets(self, name):
 		ret = []
 		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
+		cheatsheet = self.cheatsheet_manager.getIndexesbyNameForAllCheatsheet(name)
+		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
 		for s in standard:
 			for a in standard[s]:
 				ret.append(a)
+		for c in cheatsheet:
+			for a in cheatsheet[c]:
+				ret.append(a)
+			for u in usercontributed:
+				for a in usercontributed[u]:
+					ret.append(a)
 		return ret
 	
 if __name__ == '__main__':
