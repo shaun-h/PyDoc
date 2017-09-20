@@ -38,7 +38,7 @@ class PyDoc(object):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		main_view = v = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets)
+		main_view = v = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets, self.docset_index_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -133,9 +133,8 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
-		print(url)
-		self.docsetWebView.load_url(url)
 		self.navigation_view.push_view(self.docsetWebView)
+		self.docsetWebView.load_url(url)
 	
 	def search_all_docsets(self, name):
 		ret = []

@@ -26,7 +26,7 @@ class Docset(object):
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
 		self.typeManager = TypeManager.TypeManager(typeIconPath)
-		self.localServer = 'http://localhost/feeds/'
+		self.localServer = None #'http://localhost/feeds/'
 		self.docsets = []
 		self.downloading = []
 		self.docsetFolder = 'Docsets/Standard'
@@ -563,9 +563,17 @@ class DocsetManager (object):
 				c = conn.execute(sql, (name,))
 				data = c.fetchall()
 				conn.close()
+				dTypes = {}
 				for t in data:
-					ind.append({'name':t[1]})#,'path':t[2]})
-					# indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+					url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
+					url = url.replace(' ', '%20')
+					type = None
+					if t[0] in dTypes.keys():
+						type= dTypes[t[0]]
+					else:
+						type = self.typeManager.getTypeForName(t[0])
+						dTypes[t[0]] = type
+					ind.append({'name':t[1], 'path':url, 'icon':d['image'],'docsetname':d['name'],'type':type})
 				indexes[d['name']] = ind
 			return indexes
 			

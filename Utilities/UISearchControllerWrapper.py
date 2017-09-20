@@ -9,16 +9,25 @@ UISearchController = ObjCClass('UISearchController')
 NSObject = ObjCClass('NSObject')
 UITableViewController = ObjCClass('UITableViewController')
 UITableViewCell = ObjCClass('UITableViewCell')
+UIImageView = ObjCClass('UIImageView')
 
 def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	ip = ObjCInstance(indexPath)
 	ds = ObjCInstance(sel)
-	cell = ObjCInstance(tableView).dequeueReusableCellWithIdentifier_('mycell')
-	if cell == None:
-		cell = UITableViewCell.alloc().initWithStyle_reuseIdentifier_(0,'mycell')
-	text = ds.data[ip.row()]['name']
-	cell.textLabel().setText_(text)
-	return cell.ptr
+	data = ds.data[ip.row()]
+	cell = ui.TableViewCell('subtitle')
+	cell.text_label.text = data['name']
+	cell.detail_text_label.text = data['docsetname']
+	cell.image_view.image = data['icon']
+	iv = ui.ImageView()
+	cell.content_view.add_subview(iv)
+	iv.image = data['type'].icon
+	iv.width = 15
+	iv.height = 15
+	iv.x = cell.content_view.width - (iv.width * 2)
+	iv.y = (cell.content_view.height) / 2 - (iv.height)
+	iv.flex = 'L'
+	return ObjCInstance(cell).ptr
 
 def numberOfSectionsInTableView_(sel,cmd,tableView):
 	return 1
@@ -26,6 +35,12 @@ def numberOfSectionsInTableView_(sel,cmd,tableView):
 def tableView_numberOfRowsInSection_(sel,cmd, tableView,section):
 	ds = ObjCInstance(sel)
 	return len(ds.data)
+
+def tableView_didSelectRowAtIndexPath_(sel,cmd,tableView,indexPath):
+	ds = ObjCInstance(sel)
+	ip = ObjCInstance(indexPath)
+	url = ds.data[ip.row()]['path']
+	ds.selectCallBack(url)
 	
 def searchBar_textDidChange_(sel, cmd, searchBar, searchText):
 	s = ObjCInstance(sel)
@@ -67,14 +82,14 @@ def createSearchDelegateClass():
 	return sd
 	
 def createTableViewDelegateClass():
-	methods = [tableView_cellForRowAtIndexPath_,tableView_numberOfRowsInSection_,numberOfSectionsInTableView_]
-	protocols = ['UITableViewDataSource']
+	methods = [tableView_cellForRowAtIndexPath_,tableView_numberOfRowsInSection_,numberOfSectionsInTableView_, tableView_didSelectRowAtIndexPath_]
+	protocols = ['UITableViewDataSource', 'UITableViewDelegate']
 	TVDataSourceAndDelegate = create_objc_class('TVDataSourceAndDelegate', NSObject, methods=methods, protocols=protocols, debug=True)
 	return TVDataSourceAndDelegate
 	
 class SearchTableView(ui.View):
 	@on_main_thread
-	def __init__(self, tableView, filterData, *args, **kwargs):
+	def __init__(self, tableView, filterData, selectCallBack, *args, **kwargs):
 		ui.View.__init__(self, *args, **kwargs)
 		self.width, self.height = ui.get_screen_size()
 		frame = CGRect(CGPoint(0, 0), CGSize(self.width, self.height))
@@ -84,13 +99,14 @@ class SearchTableView(ui.View):
 		self.tableView = ObjCInstance(self.tv)
 		flex_width, flex_height = (1<<1), (1<<4)
 		self.tableView.setAutoresizingMask_(flex_width|flex_height)
-		
+		self.selectCallBack = selectCallBack
 		v = UITableViewController.alloc().init().autorelease()
 		tvd = createTableViewDelegateClass()
 		self.tb_ds = tvd.alloc().init().autorelease()
 		v.tableView().setDataSource_(self.tb_ds)
+		v.tableView().setDelegate_(self.tb_ds)
 		v.tableView().dataSource().data = []
-		
+		v.tableView().dataSource().selectCallBack = self.performSelectCallBack
 		self.searchController = UISearchController.alloc().initWithSearchResultsController_(v)
 		self.searchController.resultController = v
 		self.searchController.firstRun = True
@@ -102,7 +118,7 @@ class SearchTableView(ui.View):
 		self.searchDelegate.resultController = v
 		self.tableView.extendedLayoutIncludesOpaqueBars = True
 		self.searchController.searchResultsUpdater = self.searchDelegate
-		self.searchController.dimsBackgroundDuringPresentation = False
+		self.searchController.dimsBackgroundDuringPresentation = True
 		self.searchController.hidesNavigationBarDuringPresentation = True
 		self.searchController.searchBar().delegate = self.searchDelegate
 		self.searchController.searchBar().setPlaceholder_(ns('Search'))
@@ -124,9 +140,14 @@ class SearchTableView(ui.View):
 		self_objc = ObjCInstance(self)
 		self_objc.addSubview_(self.tableView)
 		self.tableView.release()
+	
+	def performSelectCallBack(self, url):
+		self.searchController.active = False
+		self.selectCallBack(url)
 
 
-def get_view(tableview, filter):
-	my = SearchTableView(tableview, filter)
+
+def get_view(tableview, filter, selectCallBack):
+	my = SearchTableView(tableview, filter, selectCallBack)
 	return my
 
