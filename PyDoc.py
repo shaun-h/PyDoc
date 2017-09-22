@@ -137,20 +137,43 @@ class PyDoc(object):
 		self.docsetWebView.load_url(url)
 	
 	def search_all_docsets(self, name):
+		if len(name) < 3:
+			return []
 		ret = []
+		retEnd = []
 		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
 		cheatsheet = self.cheatsheet_manager.getIndexesbyNameForAllCheatsheet(name)
 		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
-		for s in standard:
-			for a in standard[s]:
-				ret.append(a)
-		for c in cheatsheet:
-			for a in cheatsheet[c]:
-				ret.append(a)
-			for u in usercontributed:
-				for a in usercontributed[u]:
-					ret.append(a)
-		return ret
+		
+	
+		firstStandard = [x for x in standard if x['name']==name]
+		standard = [x for x in standard if x not in firstStandard]
+		secondStandard = [x for x in standard if x['name'].startswith(name)]
+		standard = [x for x in standard if x not in secondStandard]
+
+		firstCheatsheet = [x for x in cheatsheet if x['name']==name]
+		cheatsheet = [x for x in cheatsheet if x not in firstCheatsheet]
+		secondCheatsheet = [x for x in cheatsheet if x['name'].startswith(name)]
+		cheatsheet = [x for x in cheatsheet if x not in secondCheatsheet]
+		
+		firstUsercontributed = [x for x in usercontributed if x['name']==name]
+		usercontributed = [x for x in usercontributed if x not in firstUsercontributed]
+		secondUsercontributed = [x for x in usercontributed if x['name'].startswith(name)]
+		usercontributed = [x for x in usercontributed if x not in secondUsercontributed]
+
+		r = []
+		r.extend(firstStandard)
+		r.extend(firstCheatsheet)
+		r.extend(firstUsercontributed)
+		r.extend(secondStandard)
+		r.extend(secondCheatsheet)
+		r.extend(secondUsercontributed)
+		r.extend(standard)
+		r.extend(cheatsheet)
+		r.extend(usercontributed)
+		r.extend(retEnd)
+
+		return r
 	
 if __name__ == '__main__':
 	try:

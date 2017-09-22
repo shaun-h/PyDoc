@@ -468,7 +468,7 @@ class UserContributedManager (object):
 		else:
 			name = '%'+name+'%'
 			docsets = self.getDownloadedUserContributed()
-			indexes = {}
+			indexes = []
 			for d in docsets:
 				ind = []
 				path = d.path
@@ -489,7 +489,7 @@ class UserContributedManager (object):
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
 					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':d.name,'type':type})
-				indexes[d.name] = ind
+				indexes.extend(ind)
 			return indexes
 		
 if __name__ == '__main__':
