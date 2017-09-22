@@ -38,7 +38,7 @@ class PyDoc(object):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		main_view = v = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets, self.docset_index_selected_for_viewing)
+		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets, self.docset_index_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -79,7 +79,8 @@ class PyDoc(object):
 		return SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view)
 		
 	def setup_docset_view(self):
-		return DocsetView.get_view()
+		v = UISearchControllerWrapper.get_view(DocsetView.get_view(), self.search_all_docsets, self.docset_index_selected_for_viewing)
+		return v
 		
 	def setup_docsetindex_view(self):
 		return DocsetIndexView.get_view()
@@ -92,9 +93,9 @@ class PyDoc(object):
 	
 	def docset_selected_for_viewing(self, docset):
 		types = self.docset_manager.getTypesForDocset(docset)
-		self.docsetView.data_source.update_with_docset(docset, types, self.docset_type_selected_for_viewing)
+		self.docsetView.tv.data_source.update_with_docset(docset, types, self.docset_type_selected_for_viewing)
 		self.docsetView.name = docset['name']
-		self.docsetView.reload()
+		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def docset_type_selected_for_viewing(self, docset, type):
@@ -106,9 +107,9 @@ class PyDoc(object):
 	
 	def cheatsheet_selected_for_viewing(self, cheatsheet):
 		types = self.cheatsheet_manager.getTypesForCheatsheet(cheatsheet)
-		self.docsetView.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
+		self.docsetView.tv.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
 		self.docsetView.name = cheatsheet.name
-		self.docsetView.reload()
+		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def cheatsheet_type_selected_for_viewing(self, cheatsheet, type):
@@ -120,9 +121,9 @@ class PyDoc(object):
 		
 	def usercontributed_selected_for_viewing(self, usercontributed):
 		types = self.usercontributed_manager.getTypesForUserContributed(usercontributed)
-		self.docsetView.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
+		self.docsetView.tv.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
 		self.docsetView.name = usercontributed.name
-		self.docsetView.reload()
+		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
 	
 	def usercontributed_type_selected_for_viewing(self, usercontributed, type):
