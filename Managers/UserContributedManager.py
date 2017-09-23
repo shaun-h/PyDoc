@@ -474,8 +474,8 @@ class UserContributedManager (object):
 				path = d.path
 				indexPath = os.path.join(path, self.indexPath)
 				conn = sqlite3.connect(indexPath)
-				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
-				c = conn.execute(sql, (name,))
+				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
+				c = conn.execute(sql, (name,name.replace(' ','%'),))
 				data = c.fetchall()
 				conn.close()
 				dTypes = {}
