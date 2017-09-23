@@ -584,7 +584,7 @@ class DocsetManager (object):
 		else:
 			name = '%'+name+'%'
 			ind = []
-			path = d['path']
+			path = docset['path']
 			indexPath = os.path.join(path, self.indexPath)
 			conn = sqlite3.connect(indexPath)
 			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
@@ -601,7 +601,7 @@ class DocsetManager (object):
 				else:
 					type = self.typeManager.getTypeForName(t[0])
 					dTypes[t[0]] = type
-				ind.append({'name':t[1], 'path':url, 'icon':d['image'],'docsetname':d['name'],'type':type})
+				ind.append({'name':t[1], 'path':url, 'icon':docset['image'],'docsetname':docset['name'],'type':type})
 			return ind
 	
 	

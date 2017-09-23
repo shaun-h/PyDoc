@@ -492,6 +492,32 @@ class UserContributedManager (object):
 				indexes.extend(ind)
 			return indexes
 		
+	def getIndexesbyNameForDocset(self, docset, name):
+		if name == None or name == '':
+			return []
+		else:
+			name = '%'+name+'%'
+			ind = []
+			path = docset.path
+			indexPath = os.path.join(path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name, name.replace(' ','%'),))
+			data = c.fetchall()
+			conn.close()
+			dTypes = {}
+			for t in data:
+				url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
+				url = url.replace(' ', '%20')
+				type = None
+				if t[0] in dTypes.keys():
+					type= dTypes[t[0]]
+				else:
+					type = self.typeManager.getTypeForName(t[0])
+					dTypes[t[0]] = type
+				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type})
+			return ind
+			
 if __name__ == '__main__':
 	import ServerManager
 	c = UserContributedManager(ServerManager.ServerManager(), '../Images/icons', '../Images/types')

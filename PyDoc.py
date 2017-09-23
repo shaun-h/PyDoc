@@ -8,6 +8,7 @@ import os
 
 class PyDoc(object):
 	def __init__(self):
+	
 		console.show_activity('Loading...')
 		self.docsetFolder = 'Docsets'
 		self.setup()
@@ -109,6 +110,7 @@ class PyDoc(object):
 	def cheatsheet_selected_for_viewing(self, cheatsheet):
 		types = self.cheatsheet_manager.getTypesForCheatsheet(cheatsheet)
 		self.docsetView.tv.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
+		self.docsetView.tv.filterData = self.cheatsheet_manager.getIndexesbyNameForDocset
 		self.docsetView.name = cheatsheet.name
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -123,6 +125,7 @@ class PyDoc(object):
 	def usercontributed_selected_for_viewing(self, usercontributed):
 		types = self.usercontributed_manager.getTypesForUserContributed(usercontributed)
 		self.docsetView.tv.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
+		self.docsetView.tv.filterData = self.usercontributed_manager.getIndexesbyNameForDocset
 		self.docsetView.name = usercontributed.name
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -139,9 +142,22 @@ class PyDoc(object):
 		self.docsetWebView.load_url(url)
 	
 	def search_docset(self, name):
-		print(self.docsetView.tv.filterData)
-		self.docsetView.tv.filterData(self.docsetView.tv.data_source.docset, name)
-	
+		if len(name) < 3:
+			return []
+		data = self.docsetView.tv.filterData(self.docsetView.tv.data_source.docset, name)
+		firstData = [x for x in data if x['name']==name]
+		data = [x for x in data if x not in firstData]
+		secondData = [x for x in data if x['name'].startswith(name)]
+		data = [x for x in data if x not in secondData]
+		
+		r = []
+		r.extend(firstData)
+		r.extend(secondData)
+		r.extend(data)
+		return r
+		
+		
+		
 	def search_all_docsets(self, name):
 		if len(name) < 3:
 			return []
