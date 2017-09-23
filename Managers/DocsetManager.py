@@ -578,6 +578,33 @@ class DocsetManager (object):
 			return indexes
 			
 	
+	def getIndexesbyNameForDocset(self, docset, name):
+		if name == None or name == '':
+			return []
+		else:
+			name = '%'+name+'%'
+			ind = []
+			path = d['path']
+			indexPath = os.path.join(path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name, name.replace(' ','%'),))
+			data = c.fetchall()
+			conn.close()
+			dTypes = {}
+			for t in data:
+				url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
+				url = url.replace(' ', '%20')
+				type = None
+				if t[0] in dTypes.keys():
+					type= dTypes[t[0]]
+				else:
+					type = self.typeManager.getTypeForName(t[0])
+					dTypes[t[0]] = type
+				ind.append({'name':t[1], 'path':url, 'icon':d['image'],'docsetname':d['name'],'type':type})
+			return ind
+	
+	
 	def deleteDocset(self, docset, post_action):
 		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'] + '\n This may take a while.', 'Ok')
 		if but == 1:

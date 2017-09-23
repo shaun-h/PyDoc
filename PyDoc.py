@@ -79,7 +79,7 @@ class PyDoc(object):
 		return SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view)
 		
 	def setup_docset_view(self):
-		v = UISearchControllerWrapper.get_view(DocsetView.get_view(), self.search_all_docsets, self.docset_index_selected_for_viewing)
+		v = UISearchControllerWrapper.get_view(DocsetView.get_view(), self.search_docset, self.docset_index_selected_for_viewing)
 		return v
 		
 	def setup_docsetindex_view(self):
@@ -94,6 +94,7 @@ class PyDoc(object):
 	def docset_selected_for_viewing(self, docset):
 		types = self.docset_manager.getTypesForDocset(docset)
 		self.docsetView.tv.data_source.update_with_docset(docset, types, self.docset_type_selected_for_viewing)
+		self.docsetView.tv.filterData = self.docset_manager.getIndexesbyNameForDocset
 		self.docsetView.name = docset['name']
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -136,6 +137,10 @@ class PyDoc(object):
 	def docset_index_selected_for_viewing(self, url):
 		self.navigation_view.push_view(self.docsetWebView)
 		self.docsetWebView.load_url(url)
+	
+	def search_docset(self, name):
+		print(self.docsetView.tv.filterData)
+		self.docsetView.tv.filterData(self.docsetView.tv.data_source.docset, name)
 	
 	def search_all_docsets(self, name):
 		if len(name) < 3:

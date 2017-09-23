@@ -25,9 +25,10 @@ class DocsetView (object):
 		return cell
 	
 	def update_with_docset(self, docset, types, indexSelectCallback):
-		 self.data = types
-		 self.docset = docset
-		 self.indexSelectCallback = indexSelectCallback
+		self.data = types
+		self.docset = docset
+		self.indexSelectCallback = indexSelectCallback
+	
 	
 def get_view():
 	tv = ui.TableView()
