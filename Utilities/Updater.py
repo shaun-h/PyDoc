@@ -392,13 +392,20 @@ class Updater (object):
 		console.show_activity('Installing ' + release.tag_name)
 		request = requests.get(release.zipball_url)
 		file = zipfile.ZipFile(BytesIO(request.content))
+		toRemove = file.namelist()[0]
+			
 		filelist = [f for f in os.listdir(".") if not f == 'Docsets']
 		for f in filelist:
 			if os.path.isdir(f):
 				shutil.rmtree(f)
 			else:
 				os.remove(f)
-		file.extractall('.')
+
+		for f in file.namelist():
+			tp = f.replace(toRemove, '')
+			if not tp == '':
+				file.extract(f, tp)
+				
 		f = open('.version', 'w')
 		f.write(release.tag_name.replace('v',''))
 		f.close()
@@ -415,5 +422,8 @@ class Updater (object):
 		print('Show available versions')
 		
 if __name__ == '__main__':
+	if os.path.exists('.version'):
+		os.remove('.version')
+	
 	u = Updater()
 	u.checkForUpdate()
