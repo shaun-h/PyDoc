@@ -379,6 +379,7 @@ class Updater (object):
 		console.show_activity('Checking for update...')
 		data = json.loads(requests.get(self.latestReleaseUrl).text)
 		rel = release(data)
+		console.hide_activity()
 		if rel.prerelease == False:
 			if LooseVersion(self.currentVersion) < LooseVersion(rel.tag_name.replace('v','')):
 				ret = console.alert('Update available', rel.tag_name + ' is available, would you like to install it', hide_cancel_button=True, button1 = 'No', button2 = 'Yes')
