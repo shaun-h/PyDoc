@@ -26,9 +26,12 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 [Dash](https://kapeli.com/dash)
 
+## Updates
+
+- Added searching (this is both search across all docsets as well as individual)
+
 ## Road Map
 
-- Add searching
 - Docset update functionality
 - Dark theme
 - Transfer functionality

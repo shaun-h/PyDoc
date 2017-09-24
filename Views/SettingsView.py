@@ -6,6 +6,7 @@ from objc_util import ObjCClass, NSURL, ns
 	
 class SettingsView (object):
 	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view):
+		self.version = '1.1'
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.manage_docset_row = 0
@@ -56,7 +57,13 @@ class SettingsView (object):
 			return 'Manage'
 		if section == self.ack_section_number:
 			return 'Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.'
-	
+		
+	def tableview_title_for_footer(self, tableview, section):
+		if section == self.ack_section_number:
+			return 'Version - ' + self.version
+		else:
+			return ''
+			
 	def open_url(self, url):
 		UIApplication = ObjCClass('UIApplication')
 		sharedApplication = UIApplication.sharedApplication()
