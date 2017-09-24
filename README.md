@@ -34,6 +34,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Road Map
 
+- PyDoc update funtionality
 - Docset update functionality
 - Dark theme
 - Transfer functionality

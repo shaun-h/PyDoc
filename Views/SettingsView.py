@@ -3,12 +3,13 @@ import console
 import threading
 import time
 from objc_util import ObjCClass, NSURL, ns
+from Utilities import Updater
 	
 class SettingsView (object):
 	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view):
-		self.version = '1.1'
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
+		self.utilities_data = ['Check for Update', 'Reinstall Current Version', 'Install Version']
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1
 		self.manage_usercontributed_row = 2
@@ -17,6 +18,8 @@ class SettingsView (object):
 		self.show_usercontributed_management_view = show_usercontributed_management_view
 		self.docset_section_number = 0
 		self.ack_section_number = 1
+		self.pydoc_utilities_section_number = 2
+		self.updater = Updater.Updater()
 		
 	def tableview_did_select(self, tableview, section, row):
 		if self.docset_section_number == section:
@@ -31,17 +34,27 @@ class SettingsView (object):
 				uiThread = threading.Thread(target=self.show_usercontributed_management_view)
 				uiThread.start()
 		if self.ack_section_number == section:
+			self.open_url(self.ack_data[row]['url'])
+		if self.pydoc_utilities_section_number == section:
 			if row == 0:
-				self.open_url(self.ack_data[row]['url'])			
+				self.updater.checkForUpdate()
+			elif row == 1:
+				self.updater.reinstallCurrentVersion()
+			elif row == 2:
+				self.updater.showAvailableVersions()
+							
 		
 	def tableview_number_of_sections(self, tableview):
-		return 2
+		return 3
 		
 	def tableview_number_of_rows(self, tableview, section):
 		if section == self.docset_section_number:
 			return len(self.data)
 		if section == self.ack_section_number:
 			return len(self.ack_data)
+		if section == self.pydoc_utilities_section_number:
+			return len(self.utilities_data)
+		
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell()
@@ -50,6 +63,8 @@ class SettingsView (object):
 			cell.accessory_type = 'disclosure_indicator'
 		elif section == self.ack_section_number:
 			cell.text_label.text = self.ack_data[row]['text']
+		elif section == self.pydoc_utilities_section_number:
+			cell.text_label.text = self.utilities_data[row]
 		return cell
 	
 	def tableview_title_for_header(self, tableview, section):
@@ -57,10 +72,12 @@ class SettingsView (object):
 			return 'Manage'
 		if section == self.ack_section_number:
 			return 'Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.'
+		if section == self.pydoc_utilities_section_number:
+			return 'PyDoc Utilities'
 		
 	def tableview_title_for_footer(self, tableview, section):
-		if section == self.ack_section_number:
-			return 'Version - ' + self.version
+		if section == self.pydoc_utilities_section_number:
+			return 'Current Version - v' + self.updater.currentVersion
 		else:
 			return ''
 			
