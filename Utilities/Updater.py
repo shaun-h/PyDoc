@@ -398,12 +398,12 @@ class Updater (object):
 				shutil.rmtree(f)
 			else:
 				os.remove(f)
-		file.extractall()
+		file.extractall('.')
 		f = open('.version', 'w')
 		f.write(release.tag_name.replace('v',''))
 		f.close()
 		console.hide_activity()
-		console.alert('Installed', release.tag_name + 'installed', hide_cancel_button=True, button1 = 'Ok')
+		console.alert('Installed', release.tag_name + ' installed, please restart PyDoc', hide_cancel_button=True, button1 = 'Ok')
 		
 	def ignoreUpdate(self):
 		pass
