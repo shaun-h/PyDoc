@@ -3,8 +3,10 @@ import json
 from distutils.version import LooseVersion
 import zipfile
 import os
+import shutil
 from io import BytesIO
 import console
+import ui
 
 class release (object):
 	def __init__(self, j = None): 
@@ -371,9 +373,10 @@ class Updater (object):
 			f = open('.version', 'w')
 			f.write(self.currentVersion)
 			f.close()
-		
+	
+	@ui.in_background
 	def checkForUpdate(self):
-		print('Checking for update')
+		console.show_activity('Checking for update...')
 		data = json.loads(requests.get(self.latestReleaseUrl).text)
 		rel = release(data)
 		if rel.prerelease == False:
@@ -382,18 +385,21 @@ class Updater (object):
 				if ret == 2:
 					self.install(rel)				
 			else:
-				print('no update')
+				console.alert('No update available', 'v' + self.currentVersion + 'is the current version.', hide_cancel_button=True, button1 = 'Ok')
 	
 	def install(self, release):
 		console.show_activity('Installing ' + release.tag_name)
-		request = requests.get(rel.zipball_url)
+		request = requests.get(release.zipball_url)
 		file = zipfile.ZipFile(BytesIO(request.content))
 		filelist = [f for f in os.listdir(".") if not f == 'Docsets']
 		for f in filelist:
-			os.remove(f)
+			if os.path.isdir(f):
+				shutil.rmtree(f)
+			else:
+				os.remove(f)
 		file.extractall()
 		f = open('.version', 'w')
-		f.write(rel.tag_name.replace('v',''))
+		f.write(release.tag_name.replace('v',''))
 		f.close()
 		console.hide_activity()
 		console.alert('Installed', release.tag_name + 'installed', hide_cancel_button=True, button1 = 'Ok')
