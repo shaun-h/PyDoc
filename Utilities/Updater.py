@@ -384,11 +384,11 @@ class Updater (object):
 			console.hide_activity()
 			if rel.prerelease == False:
 				if LooseVersion(self.currentVersion) < LooseVersion(rel.tag_name.replace('v','')):
-					ret = console.alert('Update available', rel.tag_name + ' is available, would you like to install it', hide_cancel_button=True, button1 = 'No', button2 = 'Yes')
+					ret = console.alert('Update available', rel.tag_name + ' is available, would you like to install it. /n/nDetails: ' + rel.body.replace('/r/n','/n'), hide_cancel_button=True, button1 = 'No', button2 = 'Yes')
 					if ret == 2:
 						self.install(rel)				
 				else:
-					console.alert('No update available', 'v' + self.currentVersion + 'is the current version.', hide_cancel_button=True, button1 = 'Ok')
+					console.alert('No update available', 'v' + self.currentVersion + ' is the current version.', hide_cancel_button=True, button1 = 'Ok')
 		except requests.exceptions.ConnectionError as e:
 			console.alert('Check your internet connection', 'Unable to check for update.', hide_cancel_button=True, button1 = 'Ok')
 	
@@ -398,7 +398,7 @@ class Updater (object):
 		file = zipfile.ZipFile(BytesIO(request.content))
 		toRemove = file.namelist()[0]
 			
-		filelist = [f for f in os.listdir('.') if not f == 'Docsets']
+		filelist = [f for f in os.listdir('.') if not f in ['Docsets', '.wcsync']]
 		for f in filelist:
 			if os.path.isdir(f):
 				shutil.rmtree(f)

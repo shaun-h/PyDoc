@@ -28,6 +28,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Updates
 
+- 1.2.1 - Made some minor updater UI changes
 - 1.2 - Added PyDoc update funtionality
 
 - 1.1 - Added searching (this is both search across all docsets as well as individual)
