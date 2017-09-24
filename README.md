@@ -28,13 +28,14 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Updates
 
+- 1.2 - Added PyDoc update funtionality
+
 - 1.1 - Added searching (this is both search across all docsets as well as individual)
 
 - 1.0 - Initial Release
 
 ## Road Map
 
-- PyDoc update funtionality
 - Docset update functionality
 - Dark theme
 - Transfer functionality

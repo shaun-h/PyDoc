@@ -9,7 +9,7 @@ class SettingsView (object):
 	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view):
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
-		self.utilities_data = ['Check for Update', 'Reinstall Current Version', 'Install Version']
+		self.utilities_data = ['Check for Update']#, 'Reinstall Current Version', 'Install Version']
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1
 		self.manage_usercontributed_row = 2
