@@ -3,5 +3,7 @@
 	"TintColour" : "#EEEEEE",
 	"ToolbarBackgroundColour" : "#999999",
 	"InvertWebView" : false,
-	"ThemeName" : "Midnight"
+	"ThemeName" : "Midnight",
+	"TextColour" : "#f5ff14",
+	"SubTextColour" : "#ffa23d"
 }

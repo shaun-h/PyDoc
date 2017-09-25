@@ -9,13 +9,33 @@ class Theme (object):
 		self.__toolbarBackgroundColour = ''
 		self.__invertWebView = False
 		self.__themeName = ''
+		self.__textColour = ''
+		self.__subTextColour = ''
 		if not j == None:
 			self.backgroundColour = j['BackgroundColour']
 			self.tintColour = j['TintColour']
 			self.toolbarBackgroundColour = j['ToolbarBackgroundColour']
 			self.invertWebView = j['InvertWebView']
 			self.themeName = j['ThemeName']
-		
+			self.textColour = j['TextColour']
+			self.subTextColour = j['SubTextColour']
+
+	@property
+	def textColour(self):
+		return self.__textColour
+	
+	@textColour.setter
+	def textColour(self, obj):
+		self.__textColour = obj
+
+	@property
+	def subTextColour(self):
+		return self.__subTextColour
+	
+	@subTextColour.setter
+	def subTextColour(self, obj):
+		self.__subTextColour = obj
+														
 	@property
 	def backgroundColour(self):
 		return self.__backgroundColour
