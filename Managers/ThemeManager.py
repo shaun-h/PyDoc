@@ -88,6 +88,7 @@ class Theme (object):
 
 class ThemeManager (object):
 	def __init__(self, themesfolder):
+		self.themesFolder = themesfolder
 		self.themes = self.getThemes(themesfolder)
 		self.themeFileName = self.getThemeToUse(themesfolder) 
 		self.currentTheme = self.themes[self.themeFileName]
@@ -105,15 +106,15 @@ class ThemeManager (object):
 			name = config.read()
 		return name
 	
-	def saveCurrentThemeToUse(self, themesfolder):
-		themeConfigPath = os.path.join(themesfolder, '.themesConfig')
+	def saveCurrentThemeToUse(self):
+		themeConfigPath = os.path.join(self.themesFolder, '.themesConfig')
 		if os.path.exists(themeConfigPath):
 			os.remove(themeConfigPath)
 		with open(themeConfigPath, 'w') as config:
 			config.write(self.themeFileName)
 	
-	def saveThemeToUse(self, themesfolder, themeFileName):
-		themeConfigPath = os.path.join(themesfolder, '.themesConfig')
+	def saveThemeToUse(self, themeFileName):
+		themeConfigPath = os.path.join(self.themesFolder, '.themesConfig')
 		if os.path.exists(themeConfigPath):
 			os.remove(themeConfigPath)
 		with open(themeConfigPath, 'w') as config:

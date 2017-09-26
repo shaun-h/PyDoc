@@ -1,4 +1,5 @@
 import ui
+import dialogs
 import console
 import threading
 import time
@@ -23,7 +24,8 @@ class SettingsView (object):
 		self.theme_section_number = 3
 		self.updater = Updater.Updater()
 		self.theme_manager = theme_manager
-		
+	
+	@ui.in_background
 	def tableview_did_select(self, tableview, section, row):
 		if self.docset_section_number == section:
 			if self.manage_docset_row == row:
@@ -47,8 +49,14 @@ class SettingsView (object):
 				self.updater.showAvailableVersions()
 		if self.theme_section_number == section:
 			if row == 0:
-				pass
-							
+				themes = self.theme_manager.themes
+				data = [x for x in themes.keys()]
+				t = dialogs.list_dialog('Please choose your theme', data)
+				if not t == None:
+					if not t == self.theme_manager.themeFileName:
+						self.theme_manager.saveThemeToUse(t)
+						ret = console.alert('Saved', 'Please restart Pythonista for your theme change to take affect.', button1 = 'Ok', hide_cancel_button=True)
+					
 		
 	def tableview_number_of_sections(self, tableview):
 		return 4
