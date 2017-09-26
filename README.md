@@ -28,6 +28,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Updates
 
+- 1.3 - Added themes
 - 1.2.1 - Made some minor updater UI changes
 - 1.2 - Added PyDoc update funtionality
 
@@ -38,8 +39,9 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 ## Road Map
 
 - Docset update functionality
-- Dark theme
 - Transfer functionality
+- Improved WebView
+- Adding stackoverflow docsets
 
 ## Known Issues
 

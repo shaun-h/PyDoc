@@ -2,10 +2,11 @@
 import ui
 
 class DocsetView (object):
-	def __init__(self):
+	def __init__(self, theme_manager):
 		self.data = []
 		self.docset = None
 		self.indexSelectCallback = None
+		self.theme_manager = theme_manager
 		
 	def tableview_did_select(self, tableview, section, row):
 		self.indexSelectCallback(self.docset, self.data[row])
@@ -18,6 +19,13 @@ class DocsetView (object):
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell()
+		cell.border_color = self.theme_manager.currentTheme.tintColour
+		cell.background_color = self.theme_manager.currentTheme.backgroundColour
+		cell.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
+		cell.bg_color = self.theme_manager.currentTheme.backgroundColour
+		cell.tint_color = self.theme_manager.currentTheme.tintColour
+		cell.title_color = self.theme_manager.currentTheme.tintColour
+		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.text_label.text = self.data[row].plural
 		cell.accessory_type = 'disclosure_indicator'
 		if not self.data[row].icon == None:
@@ -30,14 +38,14 @@ class DocsetView (object):
 		self.indexSelectCallback = indexSelectCallback
 	
 	
-def get_view():
+def get_view(theme_manager):
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetView()
+	data = DocsetView(theme_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

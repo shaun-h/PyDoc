@@ -1,18 +1,19 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager
+from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView
 from Utilities import UISearchControllerWrapper
 import ui
 import console
 import os
+import time
 
 
 class PyDoc(object):
 	def __init__(self):
-	
 		console.show_activity('Loading...')
 		self.docsetFolder = 'Docsets'
 		self.setup()
 		self.dbmanager = DBManager.DBManager()
+		self.theme_manager = ThemeManager.ThemeManager('Themes')
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
 		self.cheatsheet_manager = CheatsheetManager.CheatsheetManager(ServerManager.ServerManager(), 'Images/icons', 'Images/types')
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
@@ -25,6 +26,7 @@ class PyDoc(object):
 		self.docsetView = self.setup_docset_view()
 		self.docsetIndexView = self.setup_docsetindex_view()
 		self.docsetWebView = self.setup_docsetweb_view()
+		UISearchControllerWrapper.Theme_manager = self.theme_manager
 		console.hide_activity()
 		
 	def setup(self):
@@ -33,13 +35,19 @@ class PyDoc(object):
 		
 	def setup_navigation_view(self):
 		nav_view = ui.NavigationView(self.main_view)
+		nav_view.border_color = self.theme_manager.currentTheme.tintColour
+		nav_view.background_color = self.theme_manager.currentTheme.backgroundColour
+		nav_view.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
+		nav_view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		nav_view.tint_color = self.theme_manager.currentTheme.tintColour
+		nav_view.title_color = self.theme_manager.currentTheme.tintColour
 		return nav_view
 
 	def setup_main_view(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing), self.search_all_docsets, self.docset_index_selected_for_viewing)
+		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -47,7 +55,13 @@ class PyDoc(object):
 
 	def setup_docset_management_view(self):
 		docsets = self.docset_manager.getAvailableDocsets()
-		return DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data)
+		docset_management_view = DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data, self.theme_manager)
+		docset_management_view.background_color = self.theme_manager.currentTheme.backgroundColour
+		docset_management_view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		docset_management_view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		docset_management_view.tint_color = self.theme_manager.currentTheme.tintColour
+		docset_management_view.title_color = self.theme_manager.currentTheme.textColour
+		return docset_management_view
 	
 	def refresh_main_view_data(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
@@ -56,7 +70,13 @@ class PyDoc(object):
 		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
 	
 	def setup_cheatsheetmanagement_view(self):
-		return CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets)
+		view = CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets, self.theme_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
 		
 	def show_docset_management_view(self):
 		self.navigation_view.push_view(self.docset_management_view)
@@ -68,7 +88,14 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_usercontributedmanagement_view(self):
-		return UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed)
+		view = UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
+		
 		
 	def show_usercontributedmanagement_view(self):
 		self.usercontributed_management_view.data_source.data = self.usercontributed_manager.getAvailableUserContributed()
@@ -77,17 +104,36 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_settings_view(self):
-		return SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view)
+		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager)
+		settings_view.background_color = self.theme_manager.currentTheme.backgroundColour
+		settings_view.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
+		settings_view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
+		settings_view.title_color = self.theme_manager.currentTheme.textColour
+		settings_view.separator_color = self.theme_manager.currentTheme.tintColour
+		return settings_view
 		
 	def setup_docset_view(self):
-		v = UISearchControllerWrapper.get_view(DocsetView.get_view(), self.search_docset, self.docset_index_selected_for_viewing)
+		v = UISearchControllerWrapper.get_view(DocsetView.get_view(self.theme_manager), self.search_docset, self.docset_index_selected_for_viewing, self.theme_manager)
 		return v
 		
 	def setup_docsetindex_view(self):
-		return DocsetIndexView.get_view()
+		view = DocsetIndexView.get_view(self.theme_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
 		
 	def setup_docsetweb_view(self):
-		return DocsetWebView.get_view()
+		view = DocsetWebView.get_view(self.theme_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
 		
 	def show_settings_view(self, sender):
 		self.navigation_view.push_view(self.settings_view)
@@ -138,8 +184,8 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
-		self.navigation_view.push_view(self.docsetWebView)
 		self.docsetWebView.load_url(url)
+		self.navigation_view.push_view(self.docsetWebView)
 	
 	def search_docset(self, name):
 		if len(name) < 3:

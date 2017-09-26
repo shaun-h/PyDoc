@@ -10,15 +10,26 @@ NSObject = ObjCClass('NSObject')
 UITableViewController = ObjCClass('UITableViewController')
 UITableViewCell = ObjCClass('UITableViewCell')
 UIImageView = ObjCClass('UIImageView')
+UIColor = ObjCClass('UIColor')
+Theme_Manager = None
 
 def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	ip = ObjCInstance(indexPath)
 	ds = ObjCInstance(sel)
 	data = ds.data[ip.row()]
+	tv = ObjCInstance(sel)
 	cell = ui.TableViewCell('subtitle')
 	cell.text_label.text = data['name']
 	cell.detail_text_label.text = data['docsetname']
 	cell.image_view.image = data['icon']
+	cell.border_color = Theme_manager.currentTheme.tintColour
+	cell.background_color = Theme_manager.currentTheme.backgroundColour
+	cell.bar_tint_color = Theme_manager.currentTheme.toolbarBackgroundColour
+	cell.bg_color = Theme_manager.currentTheme.backgroundColour
+	cell.tint_color = Theme_manager.currentTheme.tintColour
+	cell.title_color = Theme_manager.currentTheme.tintColour
+	cell.text_label.text_color = Theme_manager.currentTheme.textColour
+	cell.detail_text_label.text_color = Theme_manager.currentTheme.subTextColour
 	iv = ui.ImageView()
 	cell.content_view.add_subview(iv)
 	iv.image = data['type'].icon
@@ -81,28 +92,35 @@ def createSearchDelegateClass():
 	sd = create_objc_class('sd', NSObject, methods=methods, protocols=protocols, debug=True)
 	return sd
 	
-def createTableViewDelegateClass():
+def createTableViewDelegateClass(tm):
 	methods = [tableView_cellForRowAtIndexPath_,tableView_numberOfRowsInSection_,numberOfSectionsInTableView_, tableView_didSelectRowAtIndexPath_]
 	protocols = ['UITableViewDataSource', 'UITableViewDelegate']
 	TVDataSourceAndDelegate = create_objc_class('TVDataSourceAndDelegate', NSObject, methods=methods, protocols=protocols, debug=True)
+	TVDataSourceAndDelegate.tm = tm
 	return TVDataSourceAndDelegate
 	
 class SearchTableView(ui.View):
 	@on_main_thread
-	def __init__(self, tableView, filterData, selectCallBack, *args, **kwargs):
+	def __init__(self, tableView, filterData, selectCallBack, theme_manager, *args, **kwargs):
 		ui.View.__init__(self, *args, **kwargs)
 		self.width, self.height = ui.get_screen_size()
 		frame = CGRect(CGPoint(0, 0), CGSize(self.width, self.height))
+		theme_manager_g = theme_manager
+		self.theme_manager = theme_manager
+		bkg_view = ui.View()
+		bkg_view.background_color = self.theme_manager.currentTheme.backgroundColour
 		self.tv = tableView
 		self.tv.width = self.width
 		self.tv.height = self.height
 		self.tableView = ObjCInstance(self.tv)
+		self.tableView.setBackgroundView(bkg_view)
 		flex_width, flex_height = (1<<1), (1<<4)
 		self.tableView.setAutoresizingMask_(flex_width|flex_height)
 		self.selectCallBack = selectCallBack
 		v = UITableViewController.alloc().init().autorelease()
-		tvd = createTableViewDelegateClass()
+		tvd = createTableViewDelegateClass(theme_manager)
 		self.tb_ds = tvd.alloc().init().autorelease()
+
 		v.tableView().setDataSource_(self.tb_ds)
 		v.tableView().setDelegate_(self.tb_ds)
 		v.tableView().dataSource().data = []
@@ -124,18 +142,38 @@ class SearchTableView(ui.View):
 		self.searchController.searchBar().setPlaceholder_(ns('Search'))
 		self.tableView.tableHeaderView =self.searchController.searchBar();
 		self.searchController.searchBar().sizeToFit();		
+		tColour = tuple(int(self.theme_manager.currentTheme.tintColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		bTColour = tuple(int(self.theme_manager.currentTheme.toolbarBackgroundColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		tColour = (tColour[0]/255, tColour[1]/255, tColour[2]/255)
+		bTColour = (bTColour[0]/255, bTColour[1]/255, bTColour[2]/255)
+		searchTintColour = UIColor.colorWithRed_green_blue_alpha_(tColour[0], tColour[1], tColour[2], 1)
+		self.searchController.searchBar().tintColor = searchTintColour
+		searchBackgroundTintColour = UIColor.colorWithRed_green_blue_alpha_(bTColour[0], bTColour[1], bTColour[2], 1)
+		self.searchController.searchBar().tintColor = searchTintColour
+		self.searchController.searchBar().barTintColor = searchBackgroundTintColour
 		
-		#searchBar = UISearchBar.alloc().init()
-		#searchBar.setPlaceholder_(ns('Search'))
-		#searchBar.setDelegate_(self.searchDelegate)
-		#searchBar.setShowsBookmarkButton_(ns(True))
-		#searchBar.setShowsCancelButton_(ns(True))
-		#searchBar.setShowsSearchResultsButton_(ns(True))
-		#searchBar.setScopeButtonTitles_(ns(['test1','hi']))
-		#searchBar.setShowsScopeBar(ns(True))
+		bgColour = tuple(int(self.theme_manager.currentTheme.backgroundColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		tcColour = tuple(int(self.theme_manager.currentTheme.textColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		bgColour = (bgColour[0]/255, bgColour[1]/255, bgColour[2]/255)
+		tcColour = (tcColour[0]/255, tcColour[1]/255, tcColour[2]/255)
+		searchBGColour = UIColor.colorWithRed_green_blue_alpha_(bgColour[0], bgColour[1], bgColour[2], 1)
+		self.searchController.searchBar().backgroundColor = searchBGColour
+		searchTColour = UIColor.colorWithRed_green_blue_alpha_(tcColour[0], tcColour[1], tcColour[2], 1)
+		self.searchController.searchBar().textColor = searchTColour
+
+		self.tb_ds.textColour = searchTColour
 		
-		#self.tableView.setTableHeaderView_(searchBar)
-		#searchBar.sizeToFit()
+		self.tv.border_color = self.theme_manager.currentTheme.tintColour
+		self.tv.background_color = self.theme_manager.currentTheme.backgroundColour
+		self.tv.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
+		self.tv.bg_color = self.theme_manager.currentTheme.backgroundColour
+		self.tv.tint_color = self.theme_manager.currentTheme.tintColour
+		self.tv.title_color = self.theme_manager.currentTheme.tintColour
+		self.tv.separator_color = self.theme_manager.currentTheme.tintColour
+
+		bk_view = ui.View()
+		bk_view.background_color = self.theme_manager.currentTheme.backgroundColour
+		v.tableView().setBackgroundView(bk_view)
 		
 		self_objc = ObjCInstance(self)
 		self_objc.addSubview_(self.tableView)
@@ -146,8 +184,12 @@ class SearchTableView(ui.View):
 		self.selectCallBack(url)
 
 
-
-def get_view(tableview, filter, selectCallBack):
-	my = SearchTableView(tableview, filter, selectCallBack)
+def getUIColourFromHex(hexColour):
+	colour = tuple(int(hexColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+	colour = (colour[0]/255, colour[1]/255, colour[2]/255)
+	return UIColor.colorWithRed_green_blue_alpha_(colour[0], colour[1], colour[2], 1)
+		
+def get_view(tableview, filter, selectCallBack, theme_manager):
+	my = SearchTableView(tableview, filter, selectCallBack, theme_manager)
 	return my
 

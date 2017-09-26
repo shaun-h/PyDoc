@@ -5,5 +5,6 @@
 	"InvertWebView" : false,
 	"ThemeName" : "Midnight",
 	"TextColour" : "#f5ff14",
-	"SubTextColour" : "#ffa23d"
+	"SubTextColour" : "#ffa23d",
+	"SettingsCellColour" : "#00FFFA"
 }

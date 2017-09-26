@@ -2,7 +2,7 @@
 import ui
 
 class DocsetListView (object):
-	def __init__(self, docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback):
+	def __init__(self, docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback, theme_manager):
 		self.docsets = docsets
 		self.cheatsheets = cheatsheets
 		self.usercontributed = usercontributed
@@ -13,6 +13,7 @@ class DocsetListView (object):
 		self.cheatsheetSection = -1
 		self.usercontributedSection = -1
 		self.numberOfSections = 0
+		self.theme_manager = theme_manager
 	
 		
 	def tableview_did_select(self, tableview, section, row):
@@ -45,6 +46,14 @@ class DocsetListView (object):
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell('subtitle')
+		cell.border_color = self.theme_manager.currentTheme.tintColour
+		cell.background_color = self.theme_manager.currentTheme.backgroundColour
+		cell.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
+		cell.bg_color = self.theme_manager.currentTheme.backgroundColour
+		cell.tint_color = self.theme_manager.currentTheme.tintColour
+		cell.title_color = self.theme_manager.currentTheme.tintColour
+		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
+		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
 		if section == self.docsetSection:
 			cell.text_label.text = self.docsets[row]['name']
 			cell.accessory_type = 'disclosure_indicator'
@@ -61,6 +70,7 @@ class DocsetListView (object):
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.usercontributed[row].image == None:
 				cell.image_view.image = self.usercontributed[row].image
+
 		return cell
 	
 	def determineSections(self):
@@ -76,13 +86,13 @@ class DocsetListView (object):
 			self.numberOfSections = self.numberOfSections + 1
 	
 tv = ui.TableView()
-def get_view(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback):
+def get_view(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback, theme_manager):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetListView(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback)
+	data = DocsetListView(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback, theme_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

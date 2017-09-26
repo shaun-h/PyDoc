@@ -1,12 +1,13 @@
 import ui
 
 class DocsetManagementView (object):
-	def __init__(self, docsets, download_action, refresh_docsets_action, delete_action,refresh_main_view):
+	def __init__(self, docsets, download_action, refresh_docsets_action, delete_action,refresh_main_view, theme_manager):
 		self.data = docsets
 		self.download_action = download_action
 		self.refresh_docsets_action = refresh_docsets_action
 		self.delete_action = delete_action
 		self.refresh_main_view = refresh_main_view	
+		self.theme_manager = theme_manager
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -21,6 +22,13 @@ class DocsetManagementView (object):
 		status = self.data[row]['status']
 		cell = ui.TableViewCell('subtitle')
 		cell.text_label.text = self.data[row]['name']
+		cell.border_color = self.theme_manager.currentTheme.tintColour
+		cell.background_color = self.theme_manager.currentTheme.backgroundColour
+		cell.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		cell.bg_color = self.theme_manager.currentTheme.backgroundColour
+		cell.tint_color = self.theme_manager.currentTheme.tintColour
+		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
+		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
 		if not status == 'downloading':
 			cell.detail_text_label.text = status
 		else:
@@ -83,13 +91,13 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view):
+def get_view(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view, theme_manager):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Docsets'
-	data = DocsetManagementView(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view)
+	data = DocsetManagementView(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view, theme_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

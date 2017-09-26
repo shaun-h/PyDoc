@@ -11,6 +11,7 @@ class Theme (object):
 		self.__themeName = ''
 		self.__textColour = ''
 		self.__subTextColour = ''
+		self.__settingsCellColour = ''
 		if not j == None:
 			self.backgroundColour = j['BackgroundColour']
 			self.tintColour = j['TintColour']
@@ -19,6 +20,7 @@ class Theme (object):
 			self.themeName = j['ThemeName']
 			self.textColour = j['TextColour']
 			self.subTextColour = j['SubTextColour']
+			self.settingsCellColour = j['SettingsCellColour']
 
 	@property
 	def textColour(self):
@@ -75,6 +77,14 @@ class Theme (object):
 	@themeName.setter
 	def themeName(self, obj):
 		self.__themeName = obj
+
+	@property
+	def settingsCellColour(self):
+		return self.__settingsCellColour
+	
+	@settingsCellColour.setter
+	def settingsCellColour(self, obj):
+		self.__settingsCellColour = obj
 
 class ThemeManager (object):
 	def __init__(self, themesfolder):
