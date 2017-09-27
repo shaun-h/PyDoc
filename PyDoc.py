@@ -35,12 +35,12 @@ class PyDoc(object):
 		
 	def setup_navigation_view(self):
 		nav_view = ui.NavigationView(self.main_view)
-		nav_view.border_color = self.theme_manager.currentTheme.tintColour
+		nav_view.border_color = self.theme_manager.currentTheme.borderColour
 		nav_view.background_color = self.theme_manager.currentTheme.backgroundColour
 		nav_view.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
 		nav_view.bg_color = self.theme_manager.currentTheme.backgroundColour
 		nav_view.tint_color = self.theme_manager.currentTheme.tintColour
-		nav_view.title_color = self.theme_manager.currentTheme.tintColour
+		nav_view.title_color = self.theme_manager.currentTheme.textColour
 		return nav_view
 
 	def setup_main_view(self):
@@ -105,12 +105,9 @@ class PyDoc(object):
 		
 	def setup_settings_view(self):
 		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager)
-		settings_view.background_color = self.theme_manager.currentTheme.backgroundColour
-		settings_view.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
-		settings_view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		settings_view.background_color = self.theme_manager.currentTheme.settingsBackgroundColour
+		settings_view.bg_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
-		settings_view.title_color = self.theme_manager.currentTheme.textColour
-		settings_view.separator_color = self.theme_manager.currentTheme.tintColour
 		return settings_view
 		
 	def setup_docset_view(self):

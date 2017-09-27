@@ -12,6 +12,11 @@ class Theme (object):
 		self.__textColour = ''
 		self.__subTextColour = ''
 		self.__settingsCellColour = ''
+		self.__borderColour = ''
+		self.__separatorColor = ''
+		self.__settingsBackgroundColour = ''
+		self.__searchTintColour = ''
+		self.__searchBackgroundColour = ''
 		if not j == None:
 			self.backgroundColour = j['BackgroundColour']
 			self.tintColour = j['TintColour']
@@ -21,6 +26,11 @@ class Theme (object):
 			self.textColour = j['TextColour']
 			self.subTextColour = j['SubTextColour']
 			self.settingsCellColour = j['SettingsCellColour']
+			self.borderColour = j['BorderColour']
+			self.separatorColour = j['SeparatorColour']
+			self.settingsBackgroundColour = j['SettingsBackgroundColour']
+			self.searchTintColour = j['SearchTintColour']
+			self.searchBackgroundColour = j['SearchBackgroundColour']
 
 	@property
 	def textColour(self):
@@ -86,6 +96,47 @@ class Theme (object):
 	def settingsCellColour(self, obj):
 		self.__settingsCellColour = obj
 
+	@property
+	def borderColour(self):
+		return self.__borderColour
+	
+	@borderColour.setter
+	def borderColour(self, obj):
+		self.__borderColour = obj
+
+	@property
+	def separatorColour(self):
+		return self.__separatorColour
+	
+	@separatorColour.setter
+	def separatorColour(self, obj):
+		self.__separatorColour = obj
+		
+	@property
+	def settingsBackgroundColour(self):
+		return self.__settingsBackgroundColour
+	
+	@settingsBackgroundColour.setter
+	def settingsBackgroundColour(self, obj):
+		self.__settingsBackgroundColour = obj
+		
+	@property
+	def searchTintColour(self):
+		return self.__searchTintColour
+	
+	@searchTintColour.setter
+	def searchTintColour(self, obj):
+		self.__searchTintColour = obj
+		
+	@property
+	def searchBackgroundColour(self):
+		return self.__searchBackgroundColour
+	
+	@searchBackgroundColour.setter
+	def searchBackgroundColour(self, obj):
+		self.__searchBackgroundColour = obj
+		
+
 class ThemeManager (object):
 	def __init__(self, themesfolder):
 		self.themesFolder = themesfolder
@@ -101,7 +152,7 @@ class ThemeManager (object):
 	def getThemeToUse(self, themesfolder):
 		themeConfigPath = os.path.join(themesfolder, '.themesConfig')
 		if not os.path.exists(themeConfigPath):
-			self.saveThemeToUse('Midnight.json')
+			self.saveThemeToUse('Default.json')
 		with open(themeConfigPath, 'r') as config:
 			name = config.read()
 		return name

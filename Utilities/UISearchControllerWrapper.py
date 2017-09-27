@@ -11,6 +11,8 @@ UITableViewController = ObjCClass('UITableViewController')
 UITableViewCell = ObjCClass('UITableViewCell')
 UIImageView = ObjCClass('UIImageView')
 UIColor = ObjCClass('UIColor')
+UITextField = ObjCClass('UITextField')
+UISearchBar = ObjCClass('UISearchBar')
 Theme_Manager = None
 
 def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
@@ -127,7 +129,6 @@ class SearchTableView(ui.View):
 		self.searchController.resultController = v
 		self.searchController.firstRun = True
 		
-		
 		sd = createSearchDelegateClass()
 		self.searchDelegate = sd.alloc().init().autorelease()
 		self.searchDelegate.filter = filterData
@@ -140,8 +141,8 @@ class SearchTableView(ui.View):
 		self.searchController.searchBar().setPlaceholder_(ns('Search'))
 		self.tableView.tableHeaderView =self.searchController.searchBar();
 		self.searchController.searchBar().sizeToFit();		
-		tColour = tuple(int(self.theme_manager.currentTheme.tintColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
-		bTColour = tuple(int(self.theme_manager.currentTheme.toolbarBackgroundColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		tColour = tuple(int(self.theme_manager.currentTheme.searchTintColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
+		bTColour = tuple(int(self.theme_manager.currentTheme.searchBackgroundColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
 		tColour = (tColour[0]/255, tColour[1]/255, tColour[2]/255)
 		bTColour = (bTColour[0]/255, bTColour[1]/255, bTColour[2]/255)
 		searchTintColour = UIColor.colorWithRed_green_blue_alpha_(tColour[0], tColour[1], tColour[2], 1)
@@ -149,17 +150,9 @@ class SearchTableView(ui.View):
 		searchBackgroundTintColour = UIColor.colorWithRed_green_blue_alpha_(bTColour[0], bTColour[1], bTColour[2], 1)
 		self.searchController.searchBar().tintColor = searchTintColour
 		self.searchController.searchBar().barTintColor = searchBackgroundTintColour
-		
-		bgColour = tuple(int(self.theme_manager.currentTheme.backgroundColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
-		tcColour = tuple(int(self.theme_manager.currentTheme.textColour.lstrip('#')[i:i+2], 16) for i in (0, 2 ,4))
-		bgColour = (bgColour[0]/255, bgColour[1]/255, bgColour[2]/255)
-		tcColour = (tcColour[0]/255, tcColour[1]/255, tcColour[2]/255)
-		searchBGColour = UIColor.colorWithRed_green_blue_alpha_(bgColour[0], bgColour[1], bgColour[2], 1)
-		self.searchController.searchBar().backgroundColor = searchBGColour
-		searchTColour = UIColor.colorWithRed_green_blue_alpha_(tcColour[0], tcColour[1], tcColour[2], 1)
-		self.searchController.searchBar().textColor = searchTColour
 
-		self.tb_ds.textColour = searchTColour
+
+		# self.tb_ds.textColour = searchTColour
 		self.tv.border_color = self.theme_manager.currentTheme.borderColour
 		self.tv.background_color = self.theme_manager.currentTheme.backgroundColour
 		self.tv.bg_color = self.theme_manager.currentTheme.backgroundColour		
