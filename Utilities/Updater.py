@@ -383,7 +383,6 @@ class Updater (object):
 			rel = release(data)
 			console.hide_activity()
 			if rel.prerelease == False:
-				print(rel.body)
 				if LooseVersion(self.currentVersion) < LooseVersion(rel.tag_name.replace('v','')):
 					ret = console.alert('Update available', rel.tag_name + ' is available, would you like to install it. \n\n Details: ' + rel.body.replace('\r\n','\n'), hide_cancel_button=True, button1 = 'No', button2 = 'Yes')
 					if ret == 2:
