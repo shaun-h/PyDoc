@@ -22,12 +22,10 @@ def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	cell.text_label.text = data['name']
 	cell.detail_text_label.text = data['docsetname']
 	cell.image_view.image = data['icon']
-	cell.border_color = Theme_manager.currentTheme.tintColour
+	cell.border_color = Theme_manager.currentTheme.borderColour
 	cell.background_color = Theme_manager.currentTheme.backgroundColour
-	cell.bar_tint_color = Theme_manager.currentTheme.toolbarBackgroundColour
 	cell.bg_color = Theme_manager.currentTheme.backgroundColour
 	cell.tint_color = Theme_manager.currentTheme.tintColour
-	cell.title_color = Theme_manager.currentTheme.tintColour
 	cell.text_label.text_color = Theme_manager.currentTheme.textColour
 	cell.detail_text_label.text_color = Theme_manager.currentTheme.subTextColour
 	iv = ui.ImageView()
@@ -162,15 +160,11 @@ class SearchTableView(ui.View):
 		self.searchController.searchBar().textColor = searchTColour
 
 		self.tb_ds.textColour = searchTColour
-		
-		self.tv.border_color = self.theme_manager.currentTheme.tintColour
+		self.tv.border_color = self.theme_manager.currentTheme.borderColour
 		self.tv.background_color = self.theme_manager.currentTheme.backgroundColour
-		self.tv.bar_tint_color = self.theme_manager.currentTheme.toolbarBackgroundColour
-		self.tv.bg_color = self.theme_manager.currentTheme.backgroundColour
+		self.tv.bg_color = self.theme_manager.currentTheme.backgroundColour		
 		self.tv.tint_color = self.theme_manager.currentTheme.tintColour
-		self.tv.title_color = self.theme_manager.currentTheme.tintColour
-		self.tv.separator_color = self.theme_manager.currentTheme.tintColour
-
+		self.tv.separator_color = self.theme_manager.currentTheme.separatorColour
 		bk_view = ui.View()
 		bk_view.background_color = self.theme_manager.currentTheme.backgroundColour
 		v.tableView().setBackgroundView(bk_view)

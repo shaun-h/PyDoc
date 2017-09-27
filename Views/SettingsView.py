@@ -74,10 +74,9 @@ class SettingsView (object):
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		cell = ui.TableViewCell()		
-		cell.border_color = self.theme_manager.currentTheme.tintColour
-		cell.background_color = self.theme_manager.currentTheme.tintColour
-		cell.bar_tint_color = self.theme_manager.currentTheme.tintColour
-		cell.bg_color = self.theme_manager.currentTheme.settingsCellColour
+		cell.border_color = self.theme_manager.currentTheme.borderColour
+		cell.background_color = self.theme_manager.currentTheme.backgroundColour
+		cell.bg_color = self.theme_manager.currentTheme.backgroundColour
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		if section == self.docset_section_number:

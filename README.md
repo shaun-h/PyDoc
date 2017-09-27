@@ -42,6 +42,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 - Transfer functionality
 - Improved WebView
 - Adding stackoverflow docsets
+- Live updating for theme change (no restart required)
 
 ## Known Issues
 
