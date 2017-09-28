@@ -26,7 +26,7 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 - 1.3.1 - Added Dark Orange Theme
 - 1.3 - Added themes
-- 
+
 - 1.2.1 - Made some minor updater UI changes
 - 1.2 - Added PyDoc update funtionality
 
