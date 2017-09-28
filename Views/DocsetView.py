@@ -28,6 +28,11 @@ class DocsetView (object):
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.text_label.text = self.data[row].plural
 		cell.accessory_type = 'disclosure_indicator'
+		selectedBackgroundView = ui.View()
+		selectedBackgroundView.background_color = self.theme_manager.currentTheme.cellSelectionColour
+		if not self.theme_manager.currentTheme.showCellSelection:
+			selectedBackgroundView.alpha = 0
+		cell.selected_background_view = selectedBackgroundView
 		if not self.data[row].icon == None:
 			cell.image_view.image = self.data[row].icon
 		return cell

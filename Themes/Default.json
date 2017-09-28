@@ -1,5 +1,7 @@
 {
 	"BackgroundColour" : "#FFFFFF",
+	"CellSelectionColour" : "#C7C7CC",
+	"ShowCellSelection" : true,
 	"TintColour" : "#007AFF",
 	"ToolbarBackgroundColour" : "#FFFFFF",
 	"InvertWebView" : false,
@@ -7,6 +9,8 @@
 	"TextColour" : "#000000",
 	"SubTextColour" : "#000000",
 	"SettingsCellColour" : "#FFFFFF",
+	"SettingsCellSelectionColour" : "#C7C7CC",
+	"ShowSettingsCellSelection" : true,
 	"SettingsBackgroundColour" : "#EFEFF4",
 	"BorderColour" : "#000000",
 	"SeparatorColour" : "#C7C7CC",

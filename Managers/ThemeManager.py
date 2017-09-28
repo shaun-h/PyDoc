@@ -17,6 +17,11 @@ class Theme (object):
 		self.__settingsBackgroundColour = ''
 		self.__searchTintColour = ''
 		self.__searchBackgroundColour = ''
+		self.__cellSelectionColour = ''
+		self.__settingsCellSelectionColour = ''
+		self.__showCellSelection = True
+		self.__showSettingsCellSelection = True
+		
 		if not j == None:
 			self.backgroundColour = j['BackgroundColour']
 			self.tintColour = j['TintColour']
@@ -31,7 +36,11 @@ class Theme (object):
 			self.settingsBackgroundColour = j['SettingsBackgroundColour']
 			self.searchTintColour = j['SearchTintColour']
 			self.searchBackgroundColour = j['SearchBackgroundColour']
-
+			self.cellSelectionColour = j['CellSelectionColour']
+			self.settingsCellSelectionColour = j['SettingsCellSelectionColour']
+			self.showCellSelection = j['ShowCellSelection']
+			self.showSettingsCellSelection = j['ShowSettingsCellSelection']
+			
 	@property
 	def textColour(self):
 		return self.__textColour
@@ -135,14 +144,50 @@ class Theme (object):
 	@searchBackgroundColour.setter
 	def searchBackgroundColour(self, obj):
 		self.__searchBackgroundColour = obj
+
+	@property
+	def cellSelectionColour(self):
+		return self.__cellSelectionColour
+	
+	@cellSelectionColour.setter
+	def cellSelectionColour(self, obj):
+		self.__cellSelectionColour = obj
 		
+	@property
+	def settingsCellSelectionColour(self):
+		return self.__settingsCellSelectionColour
+	
+	@settingsCellSelectionColour.setter
+	def settingsCellSelectionColour(self, obj):
+		self.__settingsCellSelectionColour = obj
+		
+	@property
+	def showSettingsCellSelection(self):
+		return self.__showSettingsCellSelection
+	
+	@showSettingsCellSelection.setter
+	def showSettingsCellSelection(self, obj):
+		self.__showSettingsCellSelection = obj
+		
+	@property
+	def showCellSelection(self):
+		return self.__showCellSelection
+	
+	@showCellSelection.setter
+	def showCellSelection(self, obj):
+		self.__showCellSelection = obj
 
 class ThemeManager (object):
 	def __init__(self, themesfolder):
 		self.themesFolder = themesfolder
 		self.themes = self.getThemes(themesfolder)
-		self.themeFileName = self.getThemeToUse(themesfolder) 
-		self.currentTheme = self.themes[self.themeFileName]
+		self.themeFileName = self.getThemeToUse(themesfolder)
+		try:
+			self.currentTheme = self.themes[self.themeFileName]
+		except KeyError:
+			self.setThemeToUse('Default.json')
+			self.themeFileName = self.getThemeToUse(themesfolder)	
+			self.currentTheme = self.themes[self.themeFileName]
 	
 	def setThemeToUse(self, themeFileName):
 		self.themeFileName = themeFileName

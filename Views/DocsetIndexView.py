@@ -38,7 +38,11 @@ class DocsetIndexView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.title_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
-		
+		selectedBackgroundView = ui.View()
+		selectedBackgroundView.background_color = self.theme_manager.currentTheme.cellSelectionColour
+		if not self.theme_manager.currentTheme.showCellSelection:
+			selectedBackgroundView.alpha = 0
+		cell.selected_background_view = selectedBackgroundView		
 		if not self.data[row]['type'].icon == None:
 			cell.image_view.image = self.data[row]['type'].icon
 		return cell

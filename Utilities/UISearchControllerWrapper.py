@@ -30,6 +30,11 @@ def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	cell.tint_color = Theme_manager.currentTheme.tintColour
 	cell.text_label.text_color = Theme_manager.currentTheme.textColour
 	cell.detail_text_label.text_color = Theme_manager.currentTheme.subTextColour
+	selectedBackgroundView = ui.View()
+	selectedBackgroundView.background_color = Theme_manager.currentTheme.cellSelectionColour
+	if not Theme_manager.currentTheme.showCellSelection:
+		selectedBackgroundView.alpha = 0
+	cell.selected_background_view = selectedBackgroundView
 	iv = ui.ImageView()
 	cell.content_view.add_subview(iv)
 	iv.image = data['type'].icon

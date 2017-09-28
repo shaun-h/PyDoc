@@ -45,6 +45,10 @@ class DocsetListView (object):
 			return len(self.usercontributed)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
+		selectedBackgroundView = ui.View()
+		selectedBackgroundView.background_color = self.theme_manager.currentTheme.cellSelectionColour
+		if not self.theme_manager.currentTheme.showCellSelection:
+			selectedBackgroundView.alpha = 0
 		cell = ui.TableViewCell('subtitle')
 		cell.border_color = self.theme_manager.currentTheme.tintColour
 		cell.background_color = self.theme_manager.currentTheme.backgroundColour
@@ -54,6 +58,7 @@ class DocsetListView (object):
 		cell.title_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
+		cell.selected_background_view = selectedBackgroundView
 		if section == self.docsetSection:
 			cell.text_label.text = self.docsets[row]['name']
 			cell.accessory_type = 'disclosure_indicator'

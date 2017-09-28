@@ -55,7 +55,7 @@ class SettingsView (object):
 				if not t == None:
 					if not t == self.theme_manager.themeFileName:
 						self.theme_manager.saveThemeToUse(t)
-						ret = console.alert('Saved', 'Please restart Pythonista for your theme change to take affect.', button1 = 'Ok', hide_cancel_button=True)
+						ret = console.alert('Saved', 'Please restart PyDoc for your theme change to take affect.', button1 = 'Ok', hide_cancel_button=True)
 					
 		
 	def tableview_number_of_sections(self, tableview):
@@ -79,6 +79,11 @@ class SettingsView (object):
 		cell.bg_color = self.theme_manager.currentTheme.backgroundColour
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
+		selectedBackgroundView = ui.View()
+		selectedBackgroundView.background_color = self.theme_manager.currentTheme.settingsCellSelectionColour
+		if not self.theme_manager.currentTheme.showSettingsCellSelection:
+			selectedBackgroundView.alpha = 0
+		cell.selected_background_view = selectedBackgroundView
 		if section == self.docset_section_number:
 			cell.text_label.text = self.data[row]
 			cell.accessory_type = 'disclosure_indicator'

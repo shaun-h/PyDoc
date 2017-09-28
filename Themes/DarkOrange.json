@@ -1,0 +1,19 @@
+{
+	"BackgroundColour" : "#0B0500",
+	"CellSelectionColour" : "#0C0500",
+	"ShowCellSelection" : true,
+	"TintColour" : "#F3C178",
+	"ToolbarBackgroundColour" : "#FE5E41",
+	"InvertWebView" : true,
+	"ThemeName" : "DarkOrange",
+	"TextColour" : "#D8F1A0",
+	"SubTextColour" : "#D8F1A0",
+	"SettingsCellColour" : "#F3C178",
+	"SettingsCellSelectionColour" : "#F3C178",
+	"ShowSettingsCellSelection" : true,
+	"SettingsBackgroundColour" : "#0B0500",
+	"BorderColour" : "#F3C178",
+	"SeparatorColour" : "#F3C178",
+	"SearchTintColour" : "#F3C178",
+	"SearchBackgroundColour" : "#FE5E41"	
+}
