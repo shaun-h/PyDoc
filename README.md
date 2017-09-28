@@ -3,18 +3,14 @@ PyDoc is a docset browser written in python for [Pythonista](http://omz-software
 
 ## Getting Started
 To get started download this code to Pythonista:
-* Click the "Clone or download" button at the top right of this page
-* Click the "Download ZIP" link
-* Click the "More..." link
-* In the Share Sheet, click the "Run Pythonista Script" action
-* Click the "Import File" action, Click "OK", Click "Done"
-* Switch to Pythonista
-* Find the file "PyDoc-master.zip" and click on it
-* Click the "Extract Archive..." button
-* You can delete the file "PyDoc-master.zip" and to save space
-* Find the folder "PyDoc-master"
+* Copy the following line in to the interactive console in pythonista and run it.
 
-Then run the script PyDoc.py this will start the application.
+```python
+import requests as r; exec(r.get('https://goo.gl/giwri9').text)
+
+```
+
+* Once the installer has installed PyDoc restart Pythonista and run PyDoc.py in the PyDoc folder and this will start the application.
 
 ## License
 
@@ -28,7 +24,9 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Updates
 
+- 1.3.1 - Added Dark Orange Theme
 - 1.3 - Added themes
+- 
 - 1.2.1 - Made some minor updater UI changes
 - 1.2 - Added PyDoc update funtionality
 
