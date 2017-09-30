@@ -420,14 +420,40 @@ class Updater (object):
 		pass
 	
 	def reinstallCurrentVersion(self):
-		print('Reinstall current version')
+		if not os.path.exists('.version'):
+			console.alert('Install error', 'Unable to determine current version.', hide_cancel_button=True, button1 = 'Ok')
+		else:
+			console.show_activity('Checking for v' + self .currentVersion+' install files...')
+			releases = self.getAllReleases()
+			try:
+				console.hide_activity()
+				release = releases[self.currentVersion]
+				self.install(release)
+			except KeyError as e:
+				console.hide_activity()
+				res = console.alert('Install error', 'Unable to find v' + self.currentVersion + ' install files. Would you like to install the latest version?', hide_cancel_button=True, button1 = 'No', button2 = 'Ok')
+				if res == 2:
+					self.checkForUpdate()
+			
 	
 	def showAvailableVersions(self):
 		print('Show available versions')
+		
+	def getAllReleases(self):
+		try:
+			response = requests.get(self.releasesUrl)
+			data = json.loads(response.text)
+			rels = {}
+			for r in data:
+				rel = release(r)
+				rels[rel.tag_name.replace('v','')] = rel
+			return rels
+		except requests.exceptions.ConnectionError as e:
+			console.alert('Check your internet connection', 'Unable to check for update.', hide_cancel_button=True, button1 = 'Ok')
 		
 if __name__ == '__main__':
 	if os.path.exists('.version'):
 		os.remove('.version')
 	
 	u = Updater()
-	u.checkForUpdate()
+	u.reinstallCurrentVersion()
