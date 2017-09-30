@@ -24,22 +24,14 @@ Docsets are provided by Dash the MacOS docset browser. Please checkout Dash plea
 
 ## Updates
 
-- 1.3.1 - Added Dark Orange Theme
-- 1.3 - Added themes
-
-- 1.2.1 - Made some minor updater UI changes
-- 1.2 - Added PyDoc update funtionality
-
-- 1.1 - Added searching (this is both search across all docsets as well as individual)
-
-- 1.0 - Initial Release
+Check the releases section to have a look at the latest releases available.
 
 ## Road Map
 
 - Docset update functionality
 - Transfer functionality
 - Improved WebView
-- Adding stackoverflow docsets
+- Add stackoverflow docsets
 - Live updating for theme change (no restart required)
 
 ## Known Issues

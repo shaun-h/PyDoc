@@ -10,7 +10,7 @@ class SettingsView (object):
 	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager):
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
-		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version']
+		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version', 'Install Pre-release Version']
 		self.theme_data = ['Change theme']
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1
@@ -47,6 +47,10 @@ class SettingsView (object):
 				self.updater.reinstallCurrentVersion()
 			elif row == 2:
 				self.updater.showAvailableVersions()
+			elif row == 3:
+				ret = console.alert('Warning','Pre-release versions can have bugs and be unstable, including corrupting your installation. Only install a pre-release version if you are sure. Would you like to install a pre-release version?', hide_cancel_button=True, button1='No', button2 = 'Yes')
+				if ret == 2:
+					self.updater.showAvailableVersions(True)
 		if self.theme_section_number == section:
 			if row == 0:
 				themes = self.theme_manager.themes

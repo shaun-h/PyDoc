@@ -432,25 +432,34 @@ class Updater (object):
 				self.install(release)
 			except KeyError as e:
 				console.hide_activity()
-				res = console.alert('Install error', 'Unable to find v' + self.currentVersion + ' install files. Would you like to install the latest version?', hide_cancel_button=True, button1 = 'No', button2 = 'Ok')
+				res = console.alert('Install error', 'Unable to find v' + self.currentVersion + ' install files. Would you like to install the latest version?', hide_cancel_button=True, button1 = 'No', button2 = 'Yes')
 				if res == 2:
 					self.checkForUpdate()
 
-	def showAvailableVersions(self):
-		releases = self.getAllReleases()
-		data = [x for x in releases.keys()]
-		t = dialogs.list_dialog('Please choose the version to install', data)
-		if not t == None:
-			self.install(releases[t])
+	def showAvailableVersions(self, prerelease=False):
+		console.show_activity('Getting releases...')
+		releases = self.getAllReleases(prerelease)
+		console.hide_activity()
+		if len(releases) == 0:
+			if prerelease:
+				console.alert('No pre-releases available', 'There are no pre-releases available, please check again later.', hide_cancel_button=True, button1='Ok')
+			else:
+				console.alert('No releases available', 'There are no releases available, please check again later.', hide_cancel_button=True, button1='Ok')
+		else:
+			data = [x for x in releases.keys()]
+			t = dialogs.list_dialog('Please choose the version to install', data)
+			if not t == None:
+				self.install(releases[t])
 
-	def getAllReleases(self):
+	def getAllReleases(self, prerelease=False):
 		try:
 			response = requests.get(self.releasesUrl)
 			data = json.loads(response.text)
 			rels = {}
 			for r in data:
 				rel = release(r)
-				rels[rel.tag_name.replace('v','')] = rel
+				if rel.prerelease == prerelease:
+					rels[rel.tag_name.replace('v','')] = rel
 			return rels
 		except requests.exceptions.ConnectionError as e:
 			console.alert('Check your internet connection', 'Unable to check for available versions.', hide_cancel_button=True, button1 = 'Ok')
@@ -460,4 +469,6 @@ if __name__ == '__main__':
 		os.remove('.version')
 	
 	u = Updater()
-	u.reinstallCurrentVersion()
+	rels = u.getAllReleases(True)
+	for r in rels:
+		print(rels[r].tag_name + ' ' + str(rels[r].prerelease))
