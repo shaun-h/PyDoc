@@ -7,6 +7,7 @@ import shutil
 from io import BytesIO
 import console
 import ui
+import dialogs
 
 class release (object):
 	def __init__(self, j = None): 
@@ -434,11 +435,14 @@ class Updater (object):
 				res = console.alert('Install error', 'Unable to find v' + self.currentVersion + ' install files. Would you like to install the latest version?', hide_cancel_button=True, button1 = 'No', button2 = 'Ok')
 				if res == 2:
 					self.checkForUpdate()
-			
-	
+
 	def showAvailableVersions(self):
-		print('Show available versions')
-		
+		releases = self.getAllReleases()
+		data = [x for x in releases.keys()]
+		t = dialogs.list_dialog('Please choose the version to install', data)
+		if not t == None:
+			self.install(releases[t])
+
 	def getAllReleases(self):
 		try:
 			response = requests.get(self.releasesUrl)
@@ -449,7 +453,7 @@ class Updater (object):
 				rels[rel.tag_name.replace('v','')] = rel
 			return rels
 		except requests.exceptions.ConnectionError as e:
-			console.alert('Check your internet connection', 'Unable to check for update.', hide_cancel_button=True, button1 = 'Ok')
+			console.alert('Check your internet connection', 'Unable to check for available versions.', hide_cancel_button=True, button1 = 'Ok')
 		
 if __name__ == '__main__':
 	if os.path.exists('.version'):
