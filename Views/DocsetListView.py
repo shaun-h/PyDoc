@@ -2,16 +2,19 @@
 import ui
 
 class DocsetListView (object):
-	def __init__(self, docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback, theme_manager):
+	def __init__(self, docsets, cheatsheets, usercontributed, stackoverflows, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback, stackoverflow_selected_callback, theme_manager):
 		self.docsets = docsets
 		self.cheatsheets = cheatsheets
 		self.usercontributed = usercontributed
+		self.stackoverflows = stackoverflows
 		self.docset_selected_callback = docset_selected_callback
 		self.cheatsheet_selected_callback = cheatsheet_selected_callback
 		self.usercontributed_selected_callback = usercontributed_selected_callback
+		self.stackoverflow_selected_callback = stackoverflow_selected_callback
 		self.docsetSection = -1
 		self.cheatsheetSection = -1
 		self.usercontributedSection = -1
+		self.stackoverflowSection = -1
 		self.numberOfSections = 0
 		self.theme_manager = theme_manager
 	
@@ -23,6 +26,8 @@ class DocsetListView (object):
 			self.cheatsheet_selected_callback(self.cheatsheets[row])
 		elif section == self.usercontributedSection:
 			self.usercontributed_selected_callback(self.usercontributed[row])
+		elif section == self.stackoverflowSection:
+			self.stackoverflow_selected_callback(self.stackoverflows[row])
 	
 	def tableview_title_for_header(self, tableview, section):
 		if section == self.docsetSection:
@@ -31,6 +36,8 @@ class DocsetListView (object):
 			return 'Cheat Sheets'
 		elif section == self.usercontributedSection:
 			return 'User Contributed Docsets'	
+		elif section == self.stackoverflowSection:
+			return 'Stack Overflow Docsets'
 	
 	def tableview_number_of_sections(self, tableview):
 		self.determineSections()
@@ -41,8 +48,10 @@ class DocsetListView (object):
 			return len(self.docsets)
 		elif section == self.cheatsheetSection:
 			return len(self.cheatsheets)
-		elif  section == self.usercontributedSection:
+		elif section == self.usercontributedSection:
 			return len(self.usercontributed)
+		elif section == self.stackoverflowSection:
+			return len(self.stackoverflows)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
 		selectedBackgroundView = ui.View()
@@ -75,7 +84,12 @@ class DocsetListView (object):
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.usercontributed[row].image == None:
 				cell.image_view.image = self.usercontributed[row].image
-
+		elif section == self.stackoverflowSection:
+			head, _sep, tail = self.stackoverflows[row].name.rpartition(self.stackoverflows[row].type)
+			cell.text_label.text = head + tail + ' (' +self.stackoverflows[row].type + ')'
+			cell.accessory_type = 'disclosure_indicator'
+			if not self.stackoverflows[row].image == None:
+				cell.image_view.image = self.stackoverflows[row].image
 		return cell
 	
 	def determineSections(self):
@@ -89,23 +103,27 @@ class DocsetListView (object):
 		if len(self.usercontributed) > 0:
 			self.usercontributedSection = self.numberOfSections
 			self.numberOfSections = self.numberOfSections + 1
+		if len(self.stackoverflows) > 0:
+			self.stackoverflowSection = self.numberOfSections
+			self.numberOfSections = self.numberOfSections + 1
 	
 tv = ui.TableView()
-def get_view(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback, theme_manager):
+def get_view(docsets, cheatsheets, usercontributed, stackoverflows, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback, stackoverflow_selected_callback, theme_manager):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetListView(docsets, cheatsheets, usercontributed, docset_selected_callback, cheatsheet_selected_callback, usercontrobuted_selected_callback, theme_manager)
+	data = DocsetListView(docsets, cheatsheets, usercontributed, stackoverflows, docset_selected_callback, cheatsheet_selected_callback, usercontributed_selected_callback, stackoverflow_selected_callback, theme_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
 
-def refresh_view(docsets, cheatsheets, usercontributed):
+def refresh_view(docsets, cheatsheets, usercontributed, stackoverflows):
 	tv.data_source.docsets = docsets
 	tv.data_source.cheatsheets = cheatsheets
 	tv.data_source.usercontributed = usercontributed
+	tv.data_source.stackoverflows = stackoverflows
 	tv.reload_data()
 	tv.reload()
 	

@@ -7,17 +7,19 @@ from objc_util import ObjCClass, NSURL, ns
 from Utilities import Updater
 	
 class SettingsView (object):
-	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager):
-		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets']
+	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view):
+		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets', 'Stack Overflow Docsets']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version', 'Install Pre-release Version']
 		self.theme_data = ['Change theme']
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1
 		self.manage_usercontributed_row = 2
+		self.manage_stackoverflow_row = 3
 		self.show_docset_management_view = show_docset_management_view
 		self.show_cheatsheet_management_view = show_cheatsheet_management_view
 		self.show_usercontributed_management_view = show_usercontributed_management_view
+		self.show_stackoverflow_management_view = show_stackoverflow_management_view
 		self.docset_section_number = 0
 		self.ack_section_number = 1
 		self.pydoc_updates_section_number = 2
@@ -37,6 +39,9 @@ class SettingsView (object):
 			elif self.manage_usercontributed_row == row:
 				console.show_activity('Loading User Contributed Docsets...')
 				uiThread = threading.Thread(target=self.show_usercontributed_management_view)
+				uiThread.start()
+			elif self.manage_stackoverflow_row == row:
+				uiThread = threading.Thread(target=self.show_stackoverflow_management_view)
 				uiThread.start()
 		if self.ack_section_number == section:
 			self.open_url(self.ack_data[row]['url'])
@@ -122,13 +127,13 @@ class SettingsView (object):
 		sharedApplication.openURL_(internalurl)
 
 tv = ui.TableView('grouped')
-def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager):
+def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
-	tv.name = 'Settings'
-	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager)
+	tv.name = 'Settings' 
+	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

@@ -18,6 +18,10 @@ class DocsetIndexView (object):
 			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
 		elif self.docsetType == 'usercontributed':
 			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Offline':
+			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Online':
+			url = self.data[row]['path']
 		url = url.replace(' ', '%20')
 		self.indexSelectCallback(url)
 		

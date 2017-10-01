@@ -1,5 +1,5 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager
-from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView
+from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView
 from Utilities import UISearchControllerWrapper
 import ui
 import console
@@ -17,11 +17,13 @@ class PyDoc(object):
 		self.docset_manager = DocsetManager.DocsetManager('Images/icons', 'Images/types', ServerManager.ServerManager())
 		self.cheatsheet_manager = CheatsheetManager.CheatsheetManager(ServerManager.ServerManager(), 'Images/icons', 'Images/types')
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
+		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_management_view = self.setup_docset_management_view()
 		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
 		self.usercontributed_management_view = self.setup_usercontributedmanagement_view()
+		self.stackoverflow_management_view = self.setup_stackoverflowmanagement_view()
 		self.settings_view = self.setup_settings_view()
 		self.docsetView = self.setup_docset_view()
 		self.docsetIndexView = self.setup_docsetindex_view()
@@ -47,7 +49,8 @@ class PyDoc(object):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager)
+		stackoverflows = self.stackoverflow_manager.getDownloadedStackOverflows()
+		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, stackoverflows, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.stackoverflow_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -67,7 +70,8 @@ class PyDoc(object):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
-		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed)
+		stackoverflows = self.stackoverflow_manager.getDownloadedStackOverflows()
+		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed, stackoverflows)
 	
 	def setup_cheatsheetmanagement_view(self):
 		view = CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets, self.theme_manager)
@@ -95,7 +99,21 @@ class PyDoc(object):
 		view.tint_color = self.theme_manager.currentTheme.tintColour
 		view.title_color = self.theme_manager.currentTheme.textColour
 		return view
-		
+	
+	def setup_stackoverflowmanagement_view(self):
+		view = StackOverflowManagementView.get_view(self.stackoverflow_manager.downloadStackOverflow, self.refresh_main_view_data, self.stackoverflow_manager.deleteStackOverflow, self.stackoverflow_manager.getAvailableStackOverflows, self.theme_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
+	
+	def show_stackoverflowmanagement_view(self):
+		self.stackoverflow_management_view.data_source.data = self.stackoverflow_manager.getAvailableStackOverflows()
+		self.stackoverflow_management_view.reload()
+		self.navigation_view.push_view(self.stackoverflow_management_view)
+		console.hide_activity()
 		
 	def show_usercontributedmanagement_view(self):
 		self.usercontributed_management_view.data_source.data = self.usercontributed_manager.getAvailableUserContributed()
@@ -104,7 +122,7 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_settings_view(self):
-		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager)
+		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view)
 		settings_view.background_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.bg_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
@@ -180,6 +198,21 @@ class PyDoc(object):
 		self.docsetIndexView.reload()
 		self.navigation_view.push_view(self.docsetIndexView)
 		
+	def stackoverflow_selected_for_viewing(self, stackoverflow):
+		types = self.stackoverflow_manager.getTypesForStackOverflow(stackoverflow)
+		self.docsetView.tv.data_source.update_with_docset(stackoverflow, types, self.stackoverflow_type_selected_for_viewing)
+		self.docsetView.tv.filterData = self.stackoverflow_manager.getIndexesbyNameForDocset
+		self.docsetView.name = stackoverflow.name
+		self.docsetView.tv.reload()
+		self.navigation_view.push_view(self.docsetView)
+		
+	def stackoverflow_type_selected_for_viewing(self, stackoverflow, type):
+		indexes = self.stackoverflow_manager.getIndexesbyTypeForStackOverflow(stackoverflow, type)
+		self.docsetIndexView.data_source.update_with_docset(stackoverflow, indexes, self.docset_index_selected_for_viewing, 'stackoverflow')
+		self.docsetView.name = stackoverflow.name
+		self.docsetIndexView.reload()
+		self.navigation_view.push_view(self.docsetIndexView)
+		
 	def docset_index_selected_for_viewing(self, url):
 		self.docsetWebView.load_url(url)
 		self.navigation_view.push_view(self.docsetWebView)
@@ -209,6 +242,7 @@ class PyDoc(object):
 		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
 		cheatsheet = self.cheatsheet_manager.getIndexesbyNameForAllCheatsheet(name)
 		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
+		stackoverflow = self.stackoverflow_manager.getIndexesbyNameForAllStackOverflow(name)
 		
 	
 		firstStandard = [x for x in standard if x['name']==name]
@@ -225,17 +259,25 @@ class PyDoc(object):
 		usercontributed = [x for x in usercontributed if x not in firstUsercontributed]
 		secondUsercontributed = [x for x in usercontributed if x['name'].startswith(name)]
 		usercontributed = [x for x in usercontributed if x not in secondUsercontributed]
+		
+		firstStackoverflow = [x for x in stackoverflow if x['name']==name]
+		stackoverflow = [x for x in stackoverflow if x not in firstStackoverflow]
+		secondStackoverflow = [x for x in stackoverflow if x['name'].startswith(name)]
+		stackoverflow = [x for x in stackoverflow if x not in secondStackoverflow]
 
 		r = []
 		r.extend(firstStandard)
 		r.extend(firstCheatsheet)
 		r.extend(firstUsercontributed)
+		r.extend(firstStackoverflow)
 		r.extend(secondStandard)
 		r.extend(secondCheatsheet)
 		r.extend(secondUsercontributed)
+		r.extend(secondStackoverflow)
 		r.extend(standard)
 		r.extend(cheatsheet)
 		r.extend(usercontributed)
+		r.extend(stackoverflow)
 		r.extend(retEnd)
 
 		return r
