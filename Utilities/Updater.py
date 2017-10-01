@@ -415,7 +415,7 @@ class Updater (object):
 		f.write(release.tag_name.replace('v',''))
 		f.close()
 		console.hide_activity()
-		console.alert('Installed', release.tag_name + ' installed, please restart PyDoc', hide_cancel_button=True, button1 = 'Ok')
+		console.alert('Installed', release.tag_name + ' installed, please restart Pythonista', hide_cancel_button=True, button1 = 'Ok')
 		
 	def ignoreUpdate(self):
 		pass
