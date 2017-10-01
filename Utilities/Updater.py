@@ -399,7 +399,7 @@ class Updater (object):
 		file = zipfile.ZipFile(BytesIO(request.content))
 		toRemove = file.namelist()[0]
 			
-		filelist = [f for f in os.listdir('.') if not f in ['Docsets', '.wcsync']]
+		filelist = [f for f in os.listdir('.') if not f in ['Docsets', '.wcsync', '.themesConfig']]
 		for f in filelist:
 			if os.path.isdir(f):
 				shutil.rmtree(f)
@@ -425,7 +425,7 @@ class Updater (object):
 			console.alert('Install error', 'Unable to determine current version.', hide_cancel_button=True, button1 = 'Ok')
 		else:
 			console.show_activity('Checking for v' + self .currentVersion+' install files...')
-			releases = self.getAllReleases()
+			releases = self.getAllReleases(getAll = True)
 			try:
 				console.hide_activity()
 				release = releases[self.currentVersion]
@@ -451,14 +451,14 @@ class Updater (object):
 			if not t == None:
 				self.install(releases[t])
 
-	def getAllReleases(self, prerelease=False):
+	def getAllReleases(self, prerelease=False, getAll = False):
 		try:
 			response = requests.get(self.releasesUrl)
 			data = json.loads(response.text)
 			rels = {}
 			for r in data:
 				rel = release(r)
-				if rel.prerelease == prerelease:
+				if getAll or rel.prerelease == prerelease:
 					rels[rel.tag_name.replace('v','')] = rel
 			return rels
 		except requests.exceptions.ConnectionError as e:

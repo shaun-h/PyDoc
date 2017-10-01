@@ -195,7 +195,7 @@ class ThemeManager (object):
 		self.saveCurrentThemeToUse()
 		
 	def getThemeToUse(self, themesfolder):
-		themeConfigPath = os.path.join(themesfolder, '.themesConfig')
+		themeConfigPath = '.themesConfig'
 		if not os.path.exists(themeConfigPath):
 			self.saveThemeToUse('Default.json')
 		with open(themeConfigPath, 'r') as config:
@@ -203,14 +203,14 @@ class ThemeManager (object):
 		return name
 	
 	def saveCurrentThemeToUse(self):
-		themeConfigPath = os.path.join(self.themesFolder, '.themesConfig')
+		themeConfigPath = '.themesConfig'
 		if os.path.exists(themeConfigPath):
 			os.remove(themeConfigPath)
 		with open(themeConfigPath, 'w') as config:
 			config.write(self.themeFileName)
 	
 	def saveThemeToUse(self, themeFileName):
-		themeConfigPath = os.path.join(self.themesFolder, '.themesConfig')
+		themeConfigPath = '.themesConfig'
 		if os.path.exists(themeConfigPath):
 			os.remove(themeConfigPath)
 		with open(themeConfigPath, 'w') as config:
