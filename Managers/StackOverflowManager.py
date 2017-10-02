@@ -215,7 +215,7 @@ class StackOverflowManager (object):
 				s.status = 'online'
 				s.type = 'Online'
 				stackoverflows.append(s)
-			if 'offline1' in d['variants'].keys():
+			if 'offline' in d['variants'].keys():
 				so = StackOverflow()
 				so.name = d['name']
 				so.aliases = d['aliases']
