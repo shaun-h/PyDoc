@@ -4,26 +4,32 @@ import os
 from urllib.parse import quote
 
 class DocsetIndexView (object):
-	def __init__(self, theme_manager):
+	def __init__(self, theme_manager, stackOverflowOnlineCallback):
 		self.data = []
 		self.docset = None
 		self.indexSelectCallback = None
 		self.docsetType = None
 		self.theme_manager = theme_manager
+		self.stackOverflowOnlineCallback = stackOverflowOnlineCallback
+		
 		
 	def tableview_did_select(self, tableview, section, row):
 		if self.docsetType == 'docset':
-			url = 'file://' + os.path.join(self.docset['path'], 'Contents/Resources/Documents', self.data[row]['path'])
+			data = 'file://' + os.path.join(self.docset['path'], 'Contents/Resources/Documents', self.data[row]['path'])
+			data = data.replace(' ', '%20')
 		elif self.docsetType == 'cheatsheet':
-			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = data.replace(' ', '%20')
 		elif self.docsetType == 'usercontributed':
-			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = data.replace(' ', '%20')
 		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Offline':
-			url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			#url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = self.stackOverflowOnlineCallback(self.data[row], self.docset)
 		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Online':
-			url = self.data[row]['path']
-		url = url.replace(' ', '%20')
-		self.indexSelectCallback(url)
+			data = self.data[row]['path']
+			data = data.replace(' ', '%20')
+		self.indexSelectCallback(data)
 		
 	def tableview_number_of_sections(self, tableview):
 		return 1
@@ -58,14 +64,14 @@ class DocsetIndexView (object):
 		self.docsetType = docsetType
 
 
-def get_view(theme_manger):
+def get_view(theme_manger, stackOverflowOnlineCallback):
 	tv = ui.TableView()
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'PyDoc'
-	data = DocsetIndexView(theme_manger)
+	data = DocsetIndexView(theme_manger, stackOverflowOnlineCallback)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

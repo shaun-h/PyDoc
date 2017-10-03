@@ -133,7 +133,7 @@ class PyDoc(object):
 		return v
 		
 	def setup_docsetindex_view(self):
-		view = DocsetIndexView.get_view(self.theme_manager)
+		view = DocsetIndexView.get_view(self.theme_manager, self.stackoverflow_manager.buildOfflineDocsetHtml)
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -208,13 +208,20 @@ class PyDoc(object):
 		
 	def stackoverflow_type_selected_for_viewing(self, stackoverflow, type):
 		indexes = self.stackoverflow_manager.getIndexesbyTypeForStackOverflow(stackoverflow, type)
-		self.docsetIndexView.data_source.update_with_docset(stackoverflow, indexes, self.docset_index_selected_for_viewing, 'stackoverflow')
+		index_callback = self.docset_index_selected_for_viewing
+		if stackoverflow.type == 'Offline':
+			index_callback = self.docset_index_for_offline_stackoverflow_selected_for_viewing
+		self.docsetIndexView.data_source.update_with_docset(stackoverflow, indexes, index_callback, 'stackoverflow')
 		self.docsetView.name = stackoverflow.name
 		self.docsetIndexView.reload()
 		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
 		self.docsetWebView.load_url(url)
+		self.navigation_view.push_view(self.docsetWebView)
+		
+	def docset_index_for_offline_stackoverflow_selected_for_viewing(self, data):
+		self.docsetWebView.load_html(data)
 		self.navigation_view.push_view(self.docsetWebView)
 	
 	def search_docset(self, name):

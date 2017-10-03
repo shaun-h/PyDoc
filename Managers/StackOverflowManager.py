@@ -12,9 +12,10 @@ import plistlib
 import console
 import shutil
 import sqlite3
+import datetime
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
-# '{'version': 'Sept 1, 2017', 'name': 'Zsh', 'aliases': ['zsh shell', 'terminal'], 'tags': ['zsh'], 'keyword': 'zsh', 'variants': {'online': {}, 'offline': {}}}'
+
 class StackOverflow (object):
 	def __init__(self):
 		self.__version = ''
@@ -511,6 +512,86 @@ class StackOverflowManager (object):
 				head, _sep, tail = docset.name.rpartition(docset.type)
 				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':head + tail,'type':type})
 			return ind
+	
+	def buildOfflineDocsetHtml(self, entry, docset):
+		indexPath = os.path.join(docset.path, self.indexPath)
+		id = entry['path'].split('#',1)[0].replace('dash-stack://','')
+		conn = sqlite3.connect(indexPath)
+		questionSql = 'SELECT body, score, owneruserid, creationdate, acceptedanswerid FROM Posts WHERE ID = (?)'
+		c = conn.execute(questionSql, (id,))
+		question = c.fetchall()[0]
+
+		questionUserSql = 'SELECT DisplayName, AccountId FROM Users WHERE ID = (?)'
+		c = conn.execute(questionUserSql, (question[2],))
+		questionUser = c.fetchall()[0]		
+
+		acceptedAnswerSql = 'SELECT body, id, score, owneruserid, creationdate FROM Posts WHERE Id = (?)'
+		c = conn.execute(acceptedAnswerSql, (question[4],))
+		acceptedAnswer = c.fetchall()
+		
+		
+		answerSql = 'SELECT body, id, score, owneruserid, creationdate FROM Posts WHERE ParentId = (?) and id != (?)'
+		c = conn.execute(answerSql, (id,question[4],))
+		answers = c.fetchall()
+		
+		commentsSql = 'SELECT text, creationdate, userid FROM comments WHERE PostId = (?) ORDER BY creationdate'
+		
+		with open('Resources/header.html', 'rb') as f:
+			header = f.read().decode('utf8')
+
+		with open('Resources/body.html', 'rb') as f:
+			bodyTemplate = f.read().decode('utf8')
+		
+		with open('Resources/answers.html', 'rb') as f:
+			answerTemplate = f.read().decode('utf8')
+		
+		with open('Resources/AcceptedAnswer.html', 'rb') as f:
+			acceptedAnswerTemplate = f.read().decode('utf8')
+		
+		with open('Resources/comments.html', 'rb') as f:
+			commentsTemplate = f.read().decode('utf8')
+		
+		questionTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(question[3]))
+			
+		body = header
+		body += bodyTemplate.replace('{{{PostBody}}}', question[0]).replace('{{{Title}}}', entry['name']).replace('{{{AnswerCount}}}', str(len(answers)+len(acceptedAnswer))).replace('{{{Id}}}', str(id)).replace('{{{PostScore}}}', str(question[1])).replace('{{{PostOwnerDisplayName}}}', str(questionUser[0])).replace('{{{PostOwnerId}}}', str(question[2])).replace('{{{PostDateTime}}}', str(questionTime))
+		
+		answerData = ''
+		if len(acceptedAnswer) > 0:
+			aad = acceptedAnswer[0]
+			acceptedAnswerTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(aad[4]))
+			c = conn.execute(questionUserSql, (aad[3],))
+			acceptedAnswerUser = c.fetchall()[0]
+			c = conn.execute(commentsSql, (aad[1],))
+			comments = c.fetchall()
+			commentData = ''
+			for comment in comments:
+				c = conn.execute(questionUserSql, (comment[2],))
+				commentUser = c.fetchall()[0]
+				commentTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(comment[1]))
+				commentData += commentsTemplate.replace('{{{CommentBody}}}', comment[0]).replace('{{{CommentOwnerId}}}', str(comment[2])).replace('{{{CommentDisplayname}}}',commentUser[0]).replace('{{{CommentDateTime}}}',str(commentTime))
+			aa = answerTemplate.replace('{{{AnswerScore}}}', str(aad[2])).replace('{{{AcceptedAnswer}}}', acceptedAnswerTemplate).replace('{{{AnswerDateTime}}}', str(acceptedAnswerTime)).replace('{{{AnswerBody}}}', aad[0]).replace('{{{AnswerDisplayName}}}',acceptedAnswerUser[0]).replace('{{{AnswerOwnerId}}}', str(aad[3])).replace('{{{Comments}}}', commentData)
+			answerData = aa
+		for answer in answers:
+			answerTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(answer[4]))
+			c = conn.execute(questionUserSql, (answer[3],))
+			answerUser = c.fetchall()[0]
+			c = conn.execute(commentsSql, (answer[1],))
+			comments = c.fetchall()
+			commentData = ''
+			for comment in comments:
+				c = conn.execute(questionUserSql, (comment[2],))
+				commentUser = c.fetchall()[0]
+				commentTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(comment[1]))
+				commentData += commentsTemplate.replace('{{{CommentBody}}}', comment[0]).replace('{{{CommentOwnerId}}}', str(comment[2])).replace('{{{CommentDisplayname}}}',commentUser[0]).replace('{{{CommentDateTime}}}',str(commentTime))
+			answerData += answerTemplate.replace('{{{AnswerScore}}}', str(answer[2])).replace('{{{AcceptedAnswer}}}', ' ').replace('{{{AnswerDateTime}}}', str(answerTime)).replace('{{{AnswerBody}}}', answer[0]).replace('{{{AnswerDisplayName}}}',answerUser[0]).replace('{{{AnswerOwnerId}}}', str(answer[3])).replace('{{{Comments}}}', commentData)
+			
+			
+		body += answerData
+		body += '</body></html>'
+		conn.close()
+		# return '<html><body>' + body + '</body</html>' 
+		return body
 		
 if __name__ == '__main__':
 	import ServerManager
