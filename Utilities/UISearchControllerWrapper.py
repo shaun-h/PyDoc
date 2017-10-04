@@ -55,8 +55,8 @@ def tableView_numberOfRowsInSection_(sel,cmd, tableView,section):
 def tableView_didSelectRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	ds = ObjCInstance(sel)
 	ip = ObjCInstance(indexPath)
-	url = ds.data[ip.row()]['path']
-	ds.selectCallBack(url)
+	data = ds.data[ip.row()]
+	ds.selectCallBack(data)
 	
 def searchBar_textDidChange_(sel, cmd, searchBar, searchText):
 	s = ObjCInstance(sel)
@@ -106,7 +106,7 @@ def createTableViewDelegateClass(tm):
 	
 class SearchTableView(ui.View):
 	@on_main_thread
-	def __init__(self, tableView, filterData, selectCallBack, theme_manager, *args, **kwargs):
+	def __init__(self, tableView, filterData, selectCallBack, theme_manager, soofflineSelectCallBack, *args, **kwargs):
 		ui.View.__init__(self, *args, **kwargs)
 		self.width, self.height = ui.get_screen_size()
 		frame = CGRect(CGPoint(0, 0), CGSize(self.width, self.height))
@@ -122,6 +122,7 @@ class SearchTableView(ui.View):
 		flex_width, flex_height = (1<<1), (1<<4)
 		self.tableView.setAutoresizingMask_(flex_width|flex_height)
 		self.selectCallBack = selectCallBack
+		self.soofflineSelectCallBack = soofflineSelectCallBack
 		v = UITableViewController.alloc().init().autorelease()
 		tvd = createTableViewDelegateClass(theme_manager)
 		self.tb_ds = tvd.alloc().init().autorelease()
@@ -171,9 +172,14 @@ class SearchTableView(ui.View):
 		self_objc.addSubview_(self.tableView)
 		self.tableView.release()
 	
-	def performSelectCallBack(self, url):
+	def performSelectCallBack(self, data):
 		self.searchController.active = False
-		self.selectCallBack(url)
+		override = data['callbackOverride']
+		docset = data['docset']
+		if override == 'sooffline':
+			self.soofflineSelectCallBack(data, docset)
+		else:
+			self.selectCallBack(data['path'])
 
 
 def getUIColourFromHex(hexColour):
@@ -181,7 +187,7 @@ def getUIColourFromHex(hexColour):
 	colour = (colour[0]/255, colour[1]/255, colour[2]/255)
 	return UIColor.colorWithRed_green_blue_alpha_(colour[0], colour[1], colour[2], 1)
 		
-def get_view(tableview, filter, selectCallBack, theme_manager):
-	my = SearchTableView(tableview, filter, selectCallBack, theme_manager)
+def get_view(tableview, filter, selectCallBack, theme_manager, soofflineSelectCallBack):
+	my = SearchTableView(tableview, filter, selectCallBack, theme_manager, soofflineSelectCallBack)
 	return my
 

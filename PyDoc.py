@@ -50,7 +50,7 @@ class PyDoc(object):
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		stackoverflows = self.stackoverflow_manager.getDownloadedStackOverflows()
-		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, stackoverflows, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.stackoverflow_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager)
+		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, stackoverflows, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.stackoverflow_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager, self.build_offline_index_stackoverflow_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -129,7 +129,7 @@ class PyDoc(object):
 		return settings_view
 		
 	def setup_docset_view(self):
-		v = UISearchControllerWrapper.get_view(DocsetView.get_view(self.theme_manager), self.search_docset, self.docset_index_selected_for_viewing, self.theme_manager)
+		v = UISearchControllerWrapper.get_view(DocsetView.get_view(self.theme_manager), self.search_docset, self.docset_index_selected_for_viewing, self.theme_manager, self.build_offline_index_stackoverflow_selected_for_viewing)
 		return v
 		
 	def setup_docsetindex_view(self):
@@ -219,7 +219,11 @@ class PyDoc(object):
 	def docset_index_selected_for_viewing(self, url):
 		self.docsetWebView.load_url(url)
 		self.navigation_view.push_view(self.docsetWebView)
-		
+	
+	def build_offline_index_stackoverflow_selected_for_viewing(self, entry, docset):
+		html = self.stackoverflow_manager.buildOfflineDocsetHtml(entry, docset)
+		self.docset_index_for_offline_stackoverflow_selected_for_viewing(html)
+	
 	def docset_index_for_offline_stackoverflow_selected_for_viewing(self, data):
 		self.docsetWebView.load_html(data)
 		self.navigation_view.push_view(self.docsetWebView)
@@ -296,5 +300,6 @@ if __name__ == '__main__':
 	except Exception as e:
 		console.hide_activity()
 		console.alert('Error occured', str(e), 'Ok', hide_cancel_button=True)
-		
+
+
 	

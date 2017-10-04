@@ -158,7 +158,7 @@ class StackOverflowManager (object):
 					s.id = d.id
 		for d in self.__getDownloadingStackOverflows():
 			for s in stackoverflows:
-				if s.name == d.name:
+				if s.name+s.type == d.name:
 					s.status = d.status
 					try:
 						s.stats = d.stats
@@ -278,7 +278,6 @@ class StackOverflowManager (object):
 	
 	def downloadFile(self, url, stackoverflow, refresh_main_view):
 		local_filename = self.__downloadFile(url, stackoverflow)
-		#self.__downloadFile(url+'.tarix', cheatsheet)
 		stackoverflow.status = 'waiting for install'
 		self.installStackOverflow(local_filename, stackoverflow, refresh_main_view)
 	
@@ -467,11 +466,13 @@ class StackOverflowManager (object):
 				conn.close()
 				dTypes = {}
 				for t in data:
+					callbackOverride = ''
 					if d.type == 'Online':
 						url = t[2]
+						url = url.replace(' ', '%20')
 					else:
-						url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
-					url = url.replace(' ', '%20')
+						url = t[2]
+						callbackOverride = 'sooffline'
 					type = None
 					if t[0] in dTypes.keys():
 						type= dTypes[t[0]]
@@ -479,7 +480,7 @@ class StackOverflowManager (object):
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
 					head, _sep, tail = d.name.rpartition(d.type)
-					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':head+tail,'type':type})
+					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':head+tail,'type':type, 'callbackOverride': callbackOverride, 'docset': d})
 				indexes.extend(ind)
 			return indexes
 			
@@ -498,11 +499,13 @@ class StackOverflowManager (object):
 			conn.close()
 			dTypes = {}
 			for t in data:
+				callbackOverride = ''
 				if docset.type == 'Online':
 					url = t[2]
+					url = url.replace(' ', '%20')
 				else:
-					url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
-				url = url.replace(' ', '%20')
+					url = t[2]
+					callbackOverride = 'sooffline'
 				type = None
 				if t[0] in dTypes.keys():
 					type= dTypes[t[0]]
@@ -510,7 +513,7 @@ class StackOverflowManager (object):
 					type = self.typeManager.getTypeForName(t[0])
 					dTypes[t[0]] = type
 				head, _sep, tail = docset.name.rpartition(docset.type)
-				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':head + tail,'type':type})
+				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':head + tail,'type':type, 'callbackOverride':callbackOverride, 'docset': docset})
 			return ind
 	
 	def buildOfflineDocsetHtml(self, entry, docset):

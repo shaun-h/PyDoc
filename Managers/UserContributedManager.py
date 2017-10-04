@@ -488,7 +488,7 @@ class UserContributedManager (object):
 					else:
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
-					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':d.name,'type':type})
+					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':d.name,'type':type, 'callbackOverride':'', 'docset': d})
 				indexes.extend(ind)
 			return indexes
 		
@@ -515,7 +515,7 @@ class UserContributedManager (object):
 				else:
 					type = self.typeManager.getTypeForName(t[0])
 					dTypes[t[0]] = type
-				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type})
+				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type, 'callbackOverride':'', 'docset': docset})
 			return ind
 			
 if __name__ == '__main__':

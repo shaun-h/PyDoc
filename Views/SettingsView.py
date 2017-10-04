@@ -41,6 +41,7 @@ class SettingsView (object):
 				uiThread = threading.Thread(target=self.show_usercontributed_management_view)
 				uiThread.start()
 			elif self.manage_stackoverflow_row == row:
+				console.show_activity('Loading Stack Overflow Docsets...')
 				uiThread = threading.Thread(target=self.show_stackoverflow_management_view)
 				uiThread.start()
 		if self.ack_section_number == section:
