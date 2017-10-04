@@ -31,7 +31,6 @@ Check the releases section to have a look at the latest releases available.
 - Docset update functionality
 - Transfer functionality
 - Improved WebView
-- Add stackoverflow docsets
 - Live updating for theme change (no restart required)
 
 ## Known Issues
