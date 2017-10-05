@@ -522,12 +522,21 @@ class StackOverflowManager (object):
 		conn = sqlite3.connect(indexPath)
 		questionSql = 'SELECT body, score, owneruserid, creationdate, acceptedanswerid FROM Posts WHERE ID = (?)'
 		c = conn.execute(questionSql, (id,))
-		question = c.fetchall()[0]
+		question = c.fetchall()
+		if len(question) > 0:
+			question = question[0]
+		else:
+			question = ['','','']
+		
 
 		questionUserSql = 'SELECT DisplayName, AccountId FROM Users WHERE ID = (?)'
 		c = conn.execute(questionUserSql, (question[2],))
-		questionUser = c.fetchall()[0]		
-
+		questionUser = c.fetchall()
+		if len(questionUser) > 0:
+			questionUser = questionUser[0]
+		else:
+			questionUser = ['','','']
+ 
 		acceptedAnswerSql = 'SELECT body, id, score, owneruserid, creationdate FROM Posts WHERE Id = (?)'
 		c = conn.execute(acceptedAnswerSql, (question[4],))
 		acceptedAnswer = c.fetchall()

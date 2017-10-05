@@ -202,7 +202,8 @@ class PyDoc(object):
 		types = self.stackoverflow_manager.getTypesForStackOverflow(stackoverflow)
 		self.docsetView.tv.data_source.update_with_docset(stackoverflow, types, self.stackoverflow_type_selected_for_viewing)
 		self.docsetView.tv.filterData = self.stackoverflow_manager.getIndexesbyNameForDocset
-		self.docsetView.name = stackoverflow.name
+		head, _sep, tail = stackoverflow.name.rpartition(stackoverflow.type)
+		self.docsetView.name = head + tail + ' (' +stackoverflow.type + ')'
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
 		
