@@ -535,7 +535,7 @@ class StackOverflowManager (object):
 		if len(questionUser) > 0:
 			questionUser = questionUser[0]
 		else:
-			questionUser = ['','','']
+			questionUser = ['[Deleted User]','','']
  
 		acceptedAnswerSql = 'SELECT body, id, score, owneruserid, creationdate FROM Posts WHERE Id = (?)'
 		c = conn.execute(acceptedAnswerSql, (question[4],))
@@ -573,13 +573,24 @@ class StackOverflowManager (object):
 			aad = acceptedAnswer[0]
 			acceptedAnswerTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(aad[4]))
 			c = conn.execute(questionUserSql, (aad[3],))
-			acceptedAnswerUser = c.fetchall()[0]
+			acceptedAnswerUser = c.fetchall()
+			if len(acceptedAnswerUser) > 0:
+				acceptedAnswerUser = acceptedAnswerUser[0]
+			else:
+				acceptedAnswerUser = ['[Deleted User]','','']
+ 
 			c = conn.execute(commentsSql, (aad[1],))
 			comments = c.fetchall()
 			commentData = ''
 			for comment in comments:
 				c = conn.execute(questionUserSql, (comment[2],))
-				commentUser = c.fetchall()[0]
+				commentUser = c.fetchall()
+				if len(commentUser) > 0:
+					commentUser = commentUser[0]
+				else:
+					commentUser = ['[Deleted User]','','']
+ 
+				
 				commentTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(comment[1]))
 				commentData += commentsTemplate.replace('{{{CommentBody}}}', comment[0]).replace('{{{CommentOwnerId}}}', str(comment[2])).replace('{{{CommentDisplayname}}}',commentUser[0]).replace('{{{CommentDateTime}}}',str(commentTime))
 			aa = answerTemplate.replace('{{{AnswerScore}}}', str(aad[2])).replace('{{{AcceptedAnswer}}}', acceptedAnswerTemplate).replace('{{{AnswerDateTime}}}', str(acceptedAnswerTime)).replace('{{{AnswerBody}}}', aad[0]).replace('{{{AnswerDisplayName}}}',acceptedAnswerUser[0]).replace('{{{AnswerOwnerId}}}', str(aad[3])).replace('{{{Comments}}}', commentData)
@@ -587,13 +598,21 @@ class StackOverflowManager (object):
 		for answer in answers:
 			answerTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(answer[4]))
 			c = conn.execute(questionUserSql, (answer[3],))
-			answerUser = c.fetchall()[0]
+			answerUser = c.fetchall()
+			if len(answerUser) > 0:
+				answerUser = answerUser[0]
+			else:
+				answerUser = ['[Deleted User]','','']
 			c = conn.execute(commentsSql, (answer[1],))
 			comments = c.fetchall()
 			commentData = ''
 			for comment in comments:
 				c = conn.execute(questionUserSql, (comment[2],))
-				commentUser = c.fetchall()[0]
+				commentUser = c.fetchall()
+				if len(commentUser) > 0:
+					commentUser = commentUser[0]
+				else:
+					commentUser = ['[Deleted User]','','']
 				commentTime = time.strftime('%d-%b-%Y at %H:%M:%S', time.gmtime(comment[1]))
 				commentData += commentsTemplate.replace('{{{CommentBody}}}', comment[0]).replace('{{{CommentOwnerId}}}', str(comment[2])).replace('{{{CommentDisplayname}}}',commentUser[0]).replace('{{{CommentDateTime}}}',str(commentTime))
 			answerData += answerTemplate.replace('{{{AnswerScore}}}', str(answer[2])).replace('{{{AcceptedAnswer}}}', ' ').replace('{{{AnswerDateTime}}}', str(answerTime)).replace('{{{AnswerBody}}}', answer[0]).replace('{{{AnswerDisplayName}}}',answerUser[0]).replace('{{{AnswerOwnerId}}}', str(answer[3])).replace('{{{Comments}}}', commentData)
