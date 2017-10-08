@@ -249,7 +249,7 @@ class PyDoc(object):
 		
 	def search_all_docsets(self, name):
 		if len(name) < 3:
-			return []
+			return self.webSearchManager.GetAllWebSearches(name)
 		ret = []
 		retEnd = []
 		standard = self.docset_manager.getIndexesbyNameForAllDocset(name)
