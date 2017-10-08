@@ -50,33 +50,36 @@ class WebSearchManager (object):
 		c.execute('INSERT INTO websearch (Name, Url, Enabled) VALUES (?,?,?)',(name,qurl,1,))
 		self.connection.commit()
 		path = os.path.join(self.docsetFolder, str(c.lastrowid)+'.ico')
-		r = requests.get(faviconurl, stream=True)
-		if r.status_code == 200:
-			with open(path, 'wb') as f:
-				for chunk in r:
-					f.write(chunk)
-			basewidth = 48
-			img = Image.open(path)
-			wpercent = (basewidth/float(img.size[0]))
-			hsize = int((float(img.size[1])*float(wpercent)))
-			img = img.resize((basewidth,hsize), Image.ANTIALIAS)
-			pathx = path.replace('.ico','')
-			pathx = pathx + '@3x.ico'
-			basewidth = 32
-			img.save(pathx)
-			img = Image.open(path)
-			wpercent = (basewidth/float(img.size[0]))
-			hsize = int((float(img.size[1])*float(wpercent)))
-			img = img.resize((basewidth,hsize), Image.ANTIALIAS)
-			pathx = path.replace('.ico','')
-			pathx = pathx + '@2x.ico'
-			img.save(pathx) 
-			basewidth = 16
-			img = Image.open(path)
-			wpercent = (basewidth/float(img.size[0]))
-			hsize = int((float(img.size[1])*float(wpercent)))
-			img = img.resize((basewidth,hsize), Image.ANTIALIAS)
-			img.save(path)
+		try:
+			r = requests.get(faviconurl, stream=True)
+			if r.status_code == 200:
+				with open(path, 'wb') as f:
+					for chunk in r:
+						f.write(chunk)
+				basewidth = 48
+				img = Image.open(path)
+				wpercent = (basewidth/float(img.size[0]))
+				hsize = int((float(img.size[1])*float(wpercent)))
+				img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+				pathx = path.replace('.ico','')
+				pathx = pathx + '@3x.ico'
+				basewidth = 32
+				img.save(pathx)
+				img = Image.open(path)
+				wpercent = (basewidth/float(img.size[0]))
+				hsize = int((float(img.size[1])*float(wpercent)))
+				img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+				pathx = path.replace('.ico','')
+				pathx = pathx + '@2x.ico'
+				img.save(pathx) 
+				basewidth = 16
+				img = Image.open(path)
+				wpercent = (basewidth/float(img.size[0]))
+				hsize = int((float(img.size[1])*float(wpercent)))
+				img = img.resize((basewidth,hsize), Image.ANTIALIAS)
+				img.save(path)
+		except requests.RequestException as e:
+			pass
 		return True, ''
 	
 	def RemoveWebSearch(self, id):
