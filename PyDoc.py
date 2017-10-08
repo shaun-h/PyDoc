@@ -1,4 +1,4 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager
+from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView
 from Utilities import UISearchControllerWrapper
 import ui
@@ -18,6 +18,7 @@ class PyDoc(object):
 		self.cheatsheet_manager = CheatsheetManager.CheatsheetManager(ServerManager.ServerManager(), 'Images/icons', 'Images/types')
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
+		self.webSearchManager = WebSearchManager.WebSearchManager('Images/types')
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_management_view = self.setup_docset_management_view()
@@ -122,7 +123,7 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_settings_view(self):
-		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view)
+		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view,self.webSearchManager)
 		settings_view.background_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.bg_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
@@ -255,7 +256,7 @@ class PyDoc(object):
 		cheatsheet = self.cheatsheet_manager.getIndexesbyNameForAllCheatsheet(name)
 		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
 		stackoverflow = self.stackoverflow_manager.getIndexesbyNameForAllStackOverflow(name)
-		
+		webSearches = self.webSearchManager.GetAllWebSearches(name)
 	
 		firstStandard = [x for x in standard if x['name']==name]
 		standard = [x for x in standard if x not in firstStandard]
@@ -276,7 +277,7 @@ class PyDoc(object):
 		stackoverflow = [x for x in stackoverflow if x not in firstStackoverflow]
 		secondStackoverflow = [x for x in stackoverflow if x['name'].startswith(name)]
 		stackoverflow = [x for x in stackoverflow if x not in secondStackoverflow]
-
+		
 		r = []
 		r.extend(firstStandard)
 		r.extend(firstCheatsheet)
@@ -291,7 +292,7 @@ class PyDoc(object):
 		r.extend(usercontributed)
 		r.extend(stackoverflow)
 		r.extend(retEnd)
-
+		r.extend(webSearches)
 		return r
 	
 if __name__ == '__main__':

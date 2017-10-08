@@ -7,8 +7,9 @@ from objc_util import ObjCClass, NSURL, ns
 from Utilities import Updater
 	
 class SettingsView (object):
-	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view):
+	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view, websearch_manager):
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets', 'Stack Overflow Docsets']
+		self.webSearch_data = ['Add Web Search', 'Enable/Disable Web Searches', 'Remove Web Search']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version', 'Install Pre-release Version']
 		self.theme_data = ['Change theme']
@@ -16,16 +17,21 @@ class SettingsView (object):
 		self.manage_cheatsheet_row = 1
 		self.manage_usercontributed_row = 2
 		self.manage_stackoverflow_row = 3
+		self.add_websearches_row = 0
+		self.en_di_websearches_row = 1
+		self.del_websearches_row = 2
 		self.show_docset_management_view = show_docset_management_view
 		self.show_cheatsheet_management_view = show_cheatsheet_management_view
 		self.show_usercontributed_management_view = show_usercontributed_management_view
 		self.show_stackoverflow_management_view = show_stackoverflow_management_view
 		self.docset_section_number = 0
 		self.ack_section_number = 1
-		self.pydoc_updates_section_number = 2
-		self.theme_section_number = 3
+		self.websearch_section_number = 2
+		self.pydoc_updates_section_number = 3
+		self.theme_section_number = 4
 		self.updater = Updater.Updater()
 		self.theme_manager = theme_manager
+		self.websearch_manager = websearch_manager
 	
 	@ui.in_background
 	def tableview_did_select(self, tableview, section, row):
@@ -66,10 +72,58 @@ class SettingsView (object):
 					if not t == self.theme_manager.themeFileName:
 						self.theme_manager.saveThemeToUse(t)
 						ret = console.alert('Saved', 'Please restart PyDoc for your theme change to take affect.', button1 = 'Ok', hide_cancel_button=True)
+		if section == self.websearch_section_number:
+			if row == self.add_websearches_row:
+				dialogs.alert('Info','Please include {query} in your url this will be replaced with your search query.',hide_cancel_button=True,button1='Ok')
+				ok = True
+				name = ''
+				url = ''
+				while ok:
+					s = [{'title':'Name','type':'text', 'value':name},{'title':'URL','type':'text', 'autocorrection':False, 'autocapitalization':False,'value':url}]
+					data = dialogs.form_dialog(title='Add Web Search',fields=s)
+					if not data == None:
+						ret, error = self.websearch_manager.AddWebSearch(data['Name'],data['URL'])
+						if not ret:
+							name = data['Name']
+							url = data['URL']
+							dialogs.alert('Error',error, hide_cancel_button=True, button1='Ok')
+						else:
+							ok = False
+							dialogs.alert('Save','Web Search ' +data['Name']+' has been saved.', hide_cancel_button=True, button1='Ok')
+					else:
+						ok = False
+					
+			if row == self.en_di_websearches_row:
+				searches = self.websearch_manager.GetWebSearches()
+				list = []
+				for search in searches:
+					v = False
+					if search[3] == 1:
+						v = True
+					s = {'key': str(search[0]),'type':'switch','value':v,'title':str(search[1])}
+					list.append(s)
+				data = dialogs.form_dialog(title='Enable/Disable Web Searches',fields=list)
+				if not data == None:
+					for v in data:
+						if data[v]:
+							self.websearch_manager.EnableWebSearch(v)
+						else:
+							self.websearch_manager.DisableWebSearch(v)
+					
+			if row == self.del_websearches_row:
+				searches = self.websearch_manager.GetWebSearches()
+				d = []
+				for search in searches:
+					d.append(search[1])
+				data = dialogs.edit_list_dialog(title='Please swipe to delete', items=d,move=False,delete=True)
+				if not data == None:
+					for search in searches:
+						if not search[1] in data:
+							self.websearch_manager.RemoveWebSearch(search[0])
 					
 		
 	def tableview_number_of_sections(self, tableview):
-		return 4
+		return 5
 		
 	def tableview_number_of_rows(self, tableview, section):
 		if section == self.docset_section_number:
@@ -80,6 +134,8 @@ class SettingsView (object):
 			return len(self.updates_data)
 		if section == self.theme_section_number:
 			return len(self.theme_data)
+		if section == self.websearch_section_number:
+			return len(self.webSearch_data)
 		
 		
 	def tableview_cell_for_row(self, tableview, section, row):
@@ -102,7 +158,9 @@ class SettingsView (object):
 		elif section == self.pydoc_updates_section_number:
 			cell.text_label.text = self.updates_data[row]
 		elif section == self.theme_section_number:
-			cell.text_label.text = self.theme_data[row]	
+			cell.text_label.text = self.theme_data[row]
+		elif section == self.websearch_section_number:
+			cell.text_label.text = self.webSearch_data[row]
 		return cell
 	
 	def tableview_title_for_header(self, tableview, section):
@@ -114,6 +172,8 @@ class SettingsView (object):
 			return 'Update PyDoc'
 		if section == self.theme_section_number:
 			return 'Themes'
+		if section == self.websearch_section_number:
+			return 'Manage Web Search'
 		
 	def tableview_title_for_footer(self, tableview, section):
 		if section == self.pydoc_updates_section_number:
@@ -128,13 +188,13 @@ class SettingsView (object):
 		sharedApplication.openURL_(internalurl)
 
 tv = ui.TableView('grouped')
-def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view):
+def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Settings' 
-	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view)
+	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
