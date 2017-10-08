@@ -9,7 +9,7 @@ from Utilities import Updater
 class SettingsView (object):
 	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view, websearch_manager):
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets', 'Stack Overflow Docsets']
-		self.webSearch_data = ['Add Web Search', 'Enable/Disable Web Searches', 'Remove Web Search']
+		self.webSearch_data = ['Add Web Search', 'Enable/Disable Web Searches', 'Remove Web Search', 'Refresh Web Search Icons']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version', 'Install Pre-release Version']
 		self.theme_data = ['Change theme']
@@ -20,6 +20,7 @@ class SettingsView (object):
 		self.add_websearches_row = 0
 		self.en_di_websearches_row = 1
 		self.del_websearches_row = 2
+		self.refresh_websearch_icons = 3
 		self.show_docset_management_view = show_docset_management_view
 		self.show_cheatsheet_management_view = show_cheatsheet_management_view
 		self.show_usercontributed_management_view = show_usercontributed_management_view
@@ -120,7 +121,12 @@ class SettingsView (object):
 					for search in searches:
 						if not search[1] in data:
 							self.websearch_manager.RemoveWebSearch(search[0])
-					
+			if row == self.refresh_websearch_icons:
+				console.show_activity('Saving icons...')
+				searches = self.websearch_manager.GetWebSearches()
+				for search in searches:
+					self.websearch_manager.SaveIconForWebSearch(search[0], search[2])
+				console.hide_activity()
 		
 	def tableview_number_of_sections(self, tableview):
 		return 5
@@ -198,4 +204,3 @@ def get_view(show_docset_management_view, show_cheatsheet_management_view, show_
 	tv.delegate = data
 	tv.data_source = data
 	return tv
-

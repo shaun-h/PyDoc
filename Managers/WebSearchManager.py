@@ -43,13 +43,24 @@ class WebSearchManager (object):
 		hostName = parsedurl.netloc
 		if hostName == '':
 			return False, 'Invalid URL ' + url + ' no host name could be determined'
-		faviconurl = scheme + '://' + hostName + '/favicon.ico'
 		qurl = scheme + '://' + hostName + parsedurl.path +'?' + urllib.parse.quote(parsedurl.query,'/=&')
 		qurl = qurl.replace('%7Bquery%7D','{query}')
 		c = self.connection.cursor()
 		c.execute('INSERT INTO websearch (Name, Url, Enabled) VALUES (?,?,?)',(name,qurl,1,))
 		self.connection.commit()
-		path = os.path.join(self.docsetFolder, str(c.lastrowid)+'.ico')
+		self.SaveIconForWebSearch(c.lastrowid, qurl)
+		return True, ''
+	
+	def SaveIconForWebSearch(self, id, url):
+		parsedurl = urllib.parse.urlparse(url)
+		scheme = parsedurl.scheme
+		if scheme == '':
+			return False, 'Invalid URL ' + url + ', No scheme found, please include a scheme, eg http://'
+		hostName = parsedurl.netloc
+		if hostName == '':
+			return False, 'Invalid URL ' + url + ' no host name could be determined'
+		faviconurl = scheme + '://' + hostName + '/favicon.ico'
+		path = os.path.join(self.docsetFolder, str(id)+'.ico')
 		try:
 			r = requests.get(faviconurl, stream=True)
 			if r.status_code == 200:
@@ -80,7 +91,7 @@ class WebSearchManager (object):
 				img.save(path)
 		except requests.RequestException as e:
 			pass
-		return True, ''
+		
 	
 	def RemoveWebSearch(self, id):
 		c = self.connection.cursor()
