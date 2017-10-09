@@ -405,8 +405,15 @@ class StackOverflowManager (object):
 		c = conn.execute(sql, (type.name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes ={}
+		type = None
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesbyTypeAndNameForDocset(self, stackoverflow, typeName, name):
@@ -418,8 +425,15 @@ class StackOverflowManager (object):
 		c = conn.execute(sql, (typeName, name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes = {}
+		type = None
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 		
 	def getIndexesByNameForDocset(self, stackoverflow, name):
@@ -431,8 +445,15 @@ class StackOverflowManager (object):
 		c = conn.execute(sql, (name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes = {}
+		type = None
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForStackOverflow(self, stackoverflow):
@@ -444,30 +465,63 @@ class StackOverflowManager (object):
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
-		for i in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+		dTypes = {}
+		type = None
+		for t in data:
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return types
 		
 	def getIndexesbyNameForAllStackOverflow(self, name):
 		if name == None or name == '':
+			return {}
+		else:
+			docsets = self.getDownloadedStackOverflows()
+			indexes = {}
+			for d in docsets:
+				ind = self.getIndexesbyNameForDocsetSearch(d, name)
+				for k in ind:
+					if not k in indexes.keys():
+						indexes[k] = []
+					indexes[k].extend(ind[k])
+			return indexes
+			
+	def getIndexesbyNameForDocsetSearch(self, docset, name):
+		if name == None or name == '':
 			return []
 		else:
-			name = '%'+name+'%'
-			docsets = self.getDownloadedStackOverflows()
-			indexes = []
-			for d in docsets:
-				ind = []
-				path = d.path
-				indexPath = os.path.join(path, self.indexPath)
-				conn = sqlite3.connect(indexPath)
-				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
-				c = conn.execute(sql, (name, name.replace(' ','%'),))
-				data = c.fetchall()
-				conn.close()
-				dTypes = {}
-				for t in data:
+			ind = {}
+			path = docset.path
+			indexPath = os.path.join(path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name, ))
+			data = {'first' : c.fetchall()}
+
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name.replace(' ','%'), name, ))
+			data['second'] = c.fetchall()
+						
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name.replace(' ','%')+'%', name.replace(' ','%'), name, ))
+			data['third'] = c.fetchall()
+			
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, ('%'+name.replace(' ','%')+'%',name.replace(' ','%')+'%',name.replace(' ','%'), name, ))
+			data['fourth'] = c.fetchall()
+						
+									
+			conn.close()
+			dTypes = {}
+			for k in data:
+				ind[k] = []
+				for t in data[k]:
 					callbackOverride = ''
-					if d.type == 'Online':
+					if docset.type == 'Online':
 						url = t[2]
 						url = url.replace(' ', '%20')
 					else:
@@ -479,41 +533,8 @@ class StackOverflowManager (object):
 					else:
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
-					head, _sep, tail = d.name.rpartition(d.type)
-					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':head+tail,'type':type, 'callbackOverride': callbackOverride, 'docset': d})
-				indexes.extend(ind)
-			return indexes
-			
-	def getIndexesbyNameForDocset(self, docset, name):
-		if name == None or name == '':
-			return []
-		else:
-			name = '%'+name+'%'
-			ind = []
-			path = docset.path
-			indexPath = os.path.join(path, self.indexPath)
-			conn = sqlite3.connect(indexPath)
-			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
-			c = conn.execute(sql, (name, name.replace(' ','%'),))
-			data = c.fetchall()
-			conn.close()
-			dTypes = {}
-			for t in data:
-				callbackOverride = ''
-				if docset.type == 'Online':
-					url = t[2]
-					url = url.replace(' ', '%20')
-				else:
-					url = t[2]
-					callbackOverride = 'sooffline'
-				type = None
-				if t[0] in dTypes.keys():
-					type= dTypes[t[0]]
-				else:
-					type = self.typeManager.getTypeForName(t[0])
-					dTypes[t[0]] = type
-				head, _sep, tail = docset.name.rpartition(docset.type)
-				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':head + tail,'type':type, 'callbackOverride':callbackOverride, 'docset': docset})
+					head, _sep, tail = docset.name.rpartition(docset.type)
+					ind[k].append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':head + tail,'type':type, 'callbackOverride':callbackOverride, 'docset': docset})
 			return ind
 	
 	def buildOfflineDocsetHtml(self, entry, docset):

@@ -157,7 +157,7 @@ class PyDoc(object):
 	def docset_selected_for_viewing(self, docset):
 		types = self.docset_manager.getTypesForDocset(docset)
 		self.docsetView.tv.data_source.update_with_docset(docset, types, self.docset_type_selected_for_viewing)
-		self.docsetView.tv.filterData = self.docset_manager.getIndexesbyNameForDocset
+		self.docsetView.tv.filterData = self.docset_manager.getIndexesbyNameForDocsetSearch
 		self.docsetView.name = docset['name']
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -172,7 +172,7 @@ class PyDoc(object):
 	def cheatsheet_selected_for_viewing(self, cheatsheet):
 		types = self.cheatsheet_manager.getTypesForCheatsheet(cheatsheet)
 		self.docsetView.tv.data_source.update_with_docset(cheatsheet, types, self.cheatsheet_type_selected_for_viewing)
-		self.docsetView.tv.filterData = self.cheatsheet_manager.getIndexesbyNameForDocset
+		self.docsetView.tv.filterData = self.cheatsheet_manager.getIndexesbyNameForDocsetSearch
 		self.docsetView.name = cheatsheet.name
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -187,7 +187,7 @@ class PyDoc(object):
 	def usercontributed_selected_for_viewing(self, usercontributed):
 		types = self.usercontributed_manager.getTypesForUserContributed(usercontributed)
 		self.docsetView.tv.data_source.update_with_docset(usercontributed, types, self.usercontributed_type_selected_for_viewing)
-		self.docsetView.tv.filterData = self.usercontributed_manager.getIndexesbyNameForDocset
+		self.docsetView.tv.filterData = self.usercontributed_manager.getIndexesbyNameForDocsetSearch
 		self.docsetView.name = usercontributed.name
 		self.docsetView.tv.reload()
 		self.navigation_view.push_view(self.docsetView)
@@ -202,7 +202,7 @@ class PyDoc(object):
 	def stackoverflow_selected_for_viewing(self, stackoverflow):
 		types = self.stackoverflow_manager.getTypesForStackOverflow(stackoverflow)
 		self.docsetView.tv.data_source.update_with_docset(stackoverflow, types, self.stackoverflow_type_selected_for_viewing)
-		self.docsetView.tv.filterData = self.stackoverflow_manager.getIndexesbyNameForDocset
+		self.docsetView.tv.filterData = self.stackoverflow_manager.getIndexesbyNameForDocsetSearch
 		head, _sep, tail = stackoverflow.name.rpartition(stackoverflow.type)
 		self.docsetView.name = head + tail + ' (' +stackoverflow.type + ')'
 		self.docsetView.tv.reload()
@@ -236,15 +236,11 @@ class PyDoc(object):
 		if len(name) < 3:
 			return []
 		data = self.docsetView.tv.filterData(self.docsetView.tv.data_source.docset, name)
-		firstData = [x for x in data if x['name']==name]
-		data = [x for x in data if x not in firstData]
-		secondData = [x for x in data if x['name'].startswith(name)]
-		data = [x for x in data if x not in secondData]
-		
 		r = []
-		r.extend(firstData)
-		r.extend(secondData)
-		r.extend(data)
+		r.extend(data['first'])
+		r.extend(data['second'])
+		r.extend(data['third'])
+		r.extend(data['fourth'])
 		return r
 		
 		
@@ -259,41 +255,24 @@ class PyDoc(object):
 		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
 		stackoverflow = self.stackoverflow_manager.getIndexesbyNameForAllStackOverflow(name)
 		webSearches = self.webSearchManager.GetAllWebSearches(name)
-	
-		firstStandard = [x for x in standard if x['name']==name]
-		standard = [x for x in standard if x not in firstStandard]
-		secondStandard = [x for x in standard if x['name'].startswith(name)]
-		standard = [x for x in standard if x not in secondStandard]
-
-		firstCheatsheet = [x for x in cheatsheet if x['name']==name]
-		cheatsheet = [x for x in cheatsheet if x not in firstCheatsheet]
-		secondCheatsheet = [x for x in cheatsheet if x['name'].startswith(name)]
-		cheatsheet = [x for x in cheatsheet if x not in secondCheatsheet]
-		
-		firstUsercontributed = [x for x in usercontributed if x['name']==name]
-		usercontributed = [x for x in usercontributed if x not in firstUsercontributed]
-		secondUsercontributed = [x for x in usercontributed if x['name'].startswith(name)]
-		usercontributed = [x for x in usercontributed if x not in secondUsercontributed]
-		
-		firstStackoverflow = [x for x in stackoverflow if x['name']==name]
-		stackoverflow = [x for x in stackoverflow if x not in firstStackoverflow]
-		secondStackoverflow = [x for x in stackoverflow if x['name'].startswith(name)]
-		stackoverflow = [x for x in stackoverflow if x not in secondStackoverflow]
 		
 		r = []
-		r.extend(firstStandard)
-		r.extend(firstCheatsheet)
-		r.extend(firstUsercontributed)
-		r.extend(firstStackoverflow)
-		r.extend(secondStandard)
-		r.extend(secondCheatsheet)
-		r.extend(secondUsercontributed)
-		r.extend(secondStackoverflow)
-		r.extend(standard)
-		r.extend(cheatsheet)
-		r.extend(usercontributed)
-		r.extend(stackoverflow)
-		r.extend(retEnd)
+		r.extend(standard['first'])
+		r.extend(cheatsheet['first'])
+		r.extend(usercontributed['first'])
+		r.extend(stackoverflow['first'])
+		r.extend(standard['second'])
+		r.extend(cheatsheet['second'])
+		r.extend(usercontributed['second'])
+		r.extend(stackoverflow['second'])				
+		r.extend(standard['third'])
+		r.extend(cheatsheet['third'])
+		r.extend(usercontributed['third'])
+		r.extend(stackoverflow['third'])
+		r.extend(standard['fourth'])
+		r.extend(cheatsheet['fourth'])	
+		r.extend(usercontributed['fourth'])	
+		r.extend(stackoverflow['fourth'])
 		r.extend(webSearches)
 		return r
 	
