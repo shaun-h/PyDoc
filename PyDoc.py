@@ -31,7 +31,7 @@ class PyDoc(object):
 		self.docsetWebView = self.setup_docsetweb_view()
 		UISearchControllerWrapper.Theme_manager = self.theme_manager
 		console.hide_activity()
-		
+	
 	def setup(self):
 		if not os.path.exists(self.docsetFolder):
 			os.mkdir(self.docsetFolder)
@@ -257,23 +257,39 @@ class PyDoc(object):
 		webSearches = self.webSearchManager.GetAllWebSearches(name)
 		
 		r = []
-		r.extend(standard['first'])
-		r.extend(cheatsheet['first'])
-		r.extend(usercontributed['first'])
-		r.extend(stackoverflow['first'])
-		r.extend(standard['second'])
-		r.extend(cheatsheet['second'])
-		r.extend(usercontributed['second'])
-		r.extend(stackoverflow['second'])				
-		r.extend(standard['third'])
-		r.extend(cheatsheet['third'])
-		r.extend(usercontributed['third'])
-		r.extend(stackoverflow['third'])
-		r.extend(standard['fourth'])
-		r.extend(cheatsheet['fourth'])	
-		r.extend(usercontributed['fourth'])	
-		r.extend(stackoverflow['fourth'])
-		r.extend(webSearches)
+		if 'first' in standard.keys():
+			r.extend(standard['first'])
+		if 'first' in cheatsheet.keys():
+			r.extend(cheatsheet['first'])
+		if 'first' in usercontributed.keys():
+			r.extend(usercontributed['first'])
+		if 'first' in stackoverflow.keys():
+			r.extend(stackoverflow['first'])
+		if 'second' in standard.keys():
+			r.extend(standard['second'])
+		if 'second' in cheatsheet.keys():
+			r.extend(cheatsheet['second'])
+		if 'second' in usercontributed.keys():
+			r.extend(usercontributed['second'])
+		if 'second' in stackoverflow.keys():
+			r.extend(stackoverflow['second'])		
+		if 'third' in standard.keys():
+			r.extend(standard['third'])
+		if 'third' in cheatsheet.keys():
+			r.extend(cheatsheet['third'])
+		if 'third' in usercontributed.keys():
+			r.extend(usercontributed['third'])
+		if 'third' in stackoverflow.keys():
+			r.extend(stackoverflow['third'])
+		if 'fourth' in standard.keys():
+			r.extend(standard['fourth'])
+		if 'fourth' in cheatsheet.keys():
+			r.extend(cheatsheet['fourth'])	
+		if 'fourth' in usercontributed.keys():
+			r.extend(usercontributed['fourth'])
+		if 'fourth' in stackoverflow.keys():
+			r.extend(stackoverflow['fourth'])
+			r.extend(webSearches)
 		return r
 	
 if __name__ == '__main__':
