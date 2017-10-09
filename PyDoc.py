@@ -289,7 +289,7 @@ class PyDoc(object):
 			r.extend(usercontributed['fourth'])
 		if 'fourth' in stackoverflow.keys():
 			r.extend(stackoverflow['fourth'])
-			r.extend(webSearches)
+		r.extend(webSearches)
 		return r
 	
 if __name__ == '__main__':
