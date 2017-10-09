@@ -220,6 +220,7 @@ class PyDoc(object):
 		
 	def docset_index_selected_for_viewing(self, url):
 		self.docsetWebView.load_url(url)
+		self.docsetWebView.delegate.buttonHandler.showButtons = True
 		self.navigation_view.push_view(self.docsetWebView)
 	
 	def build_offline_index_stackoverflow_selected_for_viewing(self, entry, docset):
@@ -228,6 +229,7 @@ class PyDoc(object):
 	
 	def docset_index_for_offline_stackoverflow_selected_for_viewing(self, data):
 		self.docsetWebView.load_html(data)
+		self.docsetWebView.delegate.buttonHandler.showButtons = False
 		self.navigation_view.push_view(self.docsetWebView)
 	
 	def search_docset(self, name):

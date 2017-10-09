@@ -45,6 +45,7 @@ class buttonHandler (object):
 	def __init__(self, webView, tintColour):
 		self.webView = webView
 		self.tintColour = tintColour
+		self.showButtons = True
 		
 	def reload(self, sender):
 		self.webView.reload()
@@ -63,14 +64,20 @@ class buttonHandler (object):
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:ios7_refresh_empty_32'), action = self.reload, tint_color = self.tintColour))
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:ios7_arrow_forward_32'), action = self.forward, tint_color = self.tintColour))
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:ios7_arrow_back_32'), action= self.back, tint_color = self.tintColour))
-		return  rightBarButtons
+		if self.showButtons:
+			return  rightBarButtons
+		else:
+			return []
 	
 	def getStopButtons(self):
 		rightBarButtons = []
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:close_round_24'), action = self.stop, tint_color = self.tintColour))
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:ios7_arrow_forward_32'), action = self.forward, tint_color = self.tintColour))
 		rightBarButtons.append(ui.ButtonItem(image = ui.Image.named('iob:ios7_arrow_back_32'), action= self.back, tint_color = self.tintColour))
-		return  rightBarButtons
+		if self.showButtons:
+			return  rightBarButtons
+		else:
+			return []
 
 def get_view(theme_manager):
 	wv = ui.WebView()
