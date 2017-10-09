@@ -147,6 +147,7 @@ class StackOverflowManager (object):
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
 		self.__createStackOverflowFolder()
+		self.createInitialSearchIndexAllDocsets()
 	
 	def getAvailableStackOverflows(self):
 		stackoverflows = self.__getOnlineStackOverflows()
@@ -357,9 +358,21 @@ class StackOverflowManager (object):
 				if not newType == None and not newType.name == t[1]:
 					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
 				conn.commit()
+		indexSql = 'CREATE INDEX ix_searchIndex_name ON searchIndex(name)'
+		conn.execute(indexSql)
 		conn.close()
 		self.postProcess(stackoverflow, refresh_main_view)
-		
+	
+	def createInitialSearchIndexAllDocsets(self):
+		docsets = self.getDownloadedStackOverflows()
+		for d in docsets:
+			indexPath = os.path.join(d.path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			conn = sqlite3.connect(indexPath)
+			indexSql = 'CREATE INDEX IF NOT EXISTS ix_searchIndex_name ON searchIndex(name)'
+			conn.execute(indexSql)
+			conn.close()
+
 	def postProcess(self, stackoverflow, refresh_main_view):
 		stackoverflow.status = 'installed'
 		refresh_main_view()

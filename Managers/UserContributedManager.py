@@ -159,6 +159,7 @@ class UserContributedManager (object):
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
 		self.__createUserContributedFolder()
+		self.createInitialSearchIndexAllDocsets()
 	
 	def getAvailableUserContributed(self):
 		usercontributed = self.__getOnlineUserContributed()
@@ -371,9 +372,21 @@ class UserContributedManager (object):
 				if not newType == None and not newType.name == t[1]:
 					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
 				conn.commit()
+		indexSql = 'CREATE INDEX ix_searchIndex_name ON searchIndex(name)'
+		conn.execute(indexSql)
 		conn.close()
 		self.postProcess(usercontributed, refresh_main_view)
-		
+
+	def createInitialSearchIndexAllDocsets(self):
+		docsets = self.getDownloadedUserContributed()
+		for d in docsets:
+			indexPath = os.path.join(d.path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			conn = sqlite3.connect(indexPath)
+			indexSql = 'CREATE INDEX IF NOT EXISTS ix_searchIndex_name ON searchIndex(name)'
+			conn.execute(indexSql)
+			conn.close()
+
 	def postProcess(self, usercontributed, refresh_main_view):
 		usercontributed.status = 'installed'
 		refresh_main_view()

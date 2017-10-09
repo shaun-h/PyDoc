@@ -43,6 +43,7 @@ class DocsetManager (object):
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
 		self.workThreads = []
+		self.createInitialSearchIndexAllDocsets()
 		
 	def __createDocsetFolder(self):
 		if not os.path.exists(self.docsetFolder):
@@ -466,8 +467,21 @@ class DocsetManager (object):
 				if not newType == None and not newType.name == t[1]:
 					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
 				conn.commit()
+		indexSql = 'CREATE INDEX ix_searchIndex_name ON searchIndex(name)'
+		conn.execute(indexSql)
 		conn.close()
 		self.postProcess(docset, refresh_main_view)
+
+	def createInitialSearchIndexAllDocsets(self):
+		docsets = self.getDownloadedDocsets()
+		for d in docsets:
+			indexPath = os.path.join(d['path'], self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			conn = sqlite3.connect(indexPath)
+			indexSql = 'CREATE INDEX IF NOT EXISTS ix_searchIndex_name ON searchIndex(name)'
+			conn.execute(indexSql)
+			conn.close()
+		
 		
 	def postProcess(self, docset, refresh_main_view):
 		docset['status'] = 'installed'
