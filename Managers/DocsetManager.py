@@ -174,7 +174,9 @@ class DocsetManager (object):
 	def __determineUrlAndDownload(self, docset, action, refresh_main_view):
 		docset['stats'] = 'getting download link'
 		action()
-		downloadLink = self.__getDownloadLink(docset['feed'])
+		data = self.__getDownloadLink(docset['feed'])
+		docset['version'] = data['version']
+		downloadLink = data['url']
 		downloadThread = LogThread.LogThread(target=self.downloadFile, args=(downloadLink,docset,refresh_main_view,))
 		self.downloadThreads.append(downloadThread)
 		downloadThread.start()
@@ -192,11 +194,13 @@ class DocsetManager (object):
 		if link == 'SproutCore.xml':
 			data=requests.get('http://docs.sproutcore.com/feeds/' + link).text
 			e = xml.etree.ElementTree.fromstring(data)
+			version = e.findall('version')[0].text
 			for atype in e.findall('url'):
-				return atype.text
+				return {'url': atype.text, 'version':version}
 		server = self.serverManager.getDownloadServer(self.localServer)
 		data = requests.get(server.url+link).text
 		e = xml.etree.ElementTree.fromstring(data)
+		version = e.findall('version')[0].text
 		for atype in e.findall('url'):
 			if not self.localServer == None:
 				disassembled = urlparse(atype.text)
@@ -205,9 +209,9 @@ class DocsetManager (object):
 				if not url[-1] == '/':
 					url = url + '/'
 				url = url + filename + file_ext
-				return url
+				return {'url': url, 'version':version}
 			if atype.text.find(server.url) >= 0:
-				return atype.text
+				return {'url': atype.text, 'version':version}
 	
 	def downloadFile(self, url, docset, refresh_main_view):
 		local_filename = self.__downloadFile(url, docset)
@@ -252,6 +256,8 @@ class DocsetManager (object):
 			extract_location = os.path.join(self.docsetFolder, 'javase7install')
 		elif docset['name'] == 'Java SE8':
 			extract_location = os.path.join(self.docsetFolder, 'javase8install')
+		elif docset['name'] == 'Java SE9':
+			extract_location = os.path.join(self.docsetFolder, 'javase9install')
 		elif docset['name'] == 'Lua 5.1':
 			extract_location = os.path.join(self.docsetFolder, 'lua51install')
 		elif docset['name'] == 'Lua 5.2':
@@ -320,6 +326,14 @@ class DocsetManager (object):
 		elif docset['name'] == 'Java SE8':
 			p = os.path.join(extract_location, 'Java.docset')
 			n = 'JavaSE8.docset'
+			m = os.path.join(self.docsetFolder, n)
+			b = os.path.join(extract_location, n)
+			os.rename(p, b)
+			shutil.move(b, m)
+			shutil.rmtree(extract_location)
+		elif docset['name'] == 'Java SE9':
+			p = os.path.join(extract_location, 'Java.docset')
+			n = 'JavaSE9.docset'
 			m = os.path.join(self.docsetFolder, n)
 			b = os.path.join(extract_location, n)
 			os.rename(p, b)
@@ -430,7 +444,7 @@ class DocsetManager (object):
 			shutil.move(b, m)
 			shutil.rmtree(extract_location)
 		dbManager = DBManager.DBManager()
-		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], '1.0')
+		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], docset['version'])
 		self.indexDocset(docset, refresh_main_view, m)
 	
 	def track_progress(self, members, docset, totalFiles):

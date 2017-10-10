@@ -17,6 +17,7 @@
 "hasVersions":false
 },
 {"feed":"Android.xml", "icon":"android" , "aliases":["java"] , "hasVersions":false},
+{"feed":"Angular.xml", "icon":"angular" , "aliases":["google angularjs", "angular.js","angular2", "angular 2", "angularjs 2", "angular.js 2", "google angularts", "angular.io"], "hasVersions":false}, 
 {"feed":"AngularJS.xml", "icon":"angularjs" , "aliases":["google angularjs", "angular.io angular for javascript angular for js", "google angular.js", "angular2", "angular 2", "angularjs 2", "angular.js 2"] , "hasVersions":false},
 {"feed":"Ansible.xml", "icon":"ansible", "aliases":[] , "hasVersions":false},
 {"feed":"Apache_HTTP_Server.xml", "icon":"apache" , "aliases":["httpd"] , "hasVersions":false},
