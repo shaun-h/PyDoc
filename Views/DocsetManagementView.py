@@ -29,7 +29,7 @@ class DocsetManagementView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
-		if not status == 'downloading' or not 'stats' in self.data[row].keys:
+		if not status == 'downloading' or not 'stats' in self.data[row].keys():
 			cell.detail_text_label.text = status
 		else:
 			cell.detail_text_label.text = self.data[row]['stats']
