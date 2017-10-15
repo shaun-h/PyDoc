@@ -15,6 +15,7 @@ import sqlite3
 import datetime
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
+from distutils.version import LooseVersion
 
 class StackOverflow (object):
 	def __init__(self):
@@ -143,6 +144,7 @@ class StackOverflowManager (object):
 		self.headers = {'User-Agent': 'PyDoc-Pythonista'}
 		self.stackoverflows = None
 		self.downloading = []
+		self.updateAvailable = []		
 		self.workThreads = []
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
@@ -157,10 +159,16 @@ class StackOverflowManager (object):
 					s.status = 'installed'
 					s.path = d.path
 					s.id = d.id
+					s.version = d.version
+		for d in self.updateAvailable:
+			for s in stackoverflows:
+				if s.name+s.type == d.name+d.type:
+					s.status = "Update Available"					
 		for d in self.__getDownloadingStackOverflows():
 			for s in stackoverflows:
 				if s.name+s.type == d.name:
 					s.status = d.status
+					s.version = d.version					
 					try:
 						s.stats = d.stats
 					except KeyError:
@@ -184,6 +192,7 @@ class StackOverflowManager (object):
 			aa.path = os.path.join(os.path.abspath('.'),d[2])
 			aa.image = self.__getIconWithName(d[4])
 			aa.type = d[6]
+			aa.version = d[5]
 			ds.append(aa)
 		return ds
 	
@@ -230,7 +239,21 @@ class StackOverflowManager (object):
 				so.type = 'Offline'
 				stackoverflows.append(so)
 		return sorted(stackoverflows, key=lambda x: x.name.lower())
-	
+
+	def checkDocsetsForUpdates(self, docsets):
+		console.show_activity('Checking for updates...')
+		self.stackoverflows = None
+		online = self.__getOnlineStackOverflows()
+		for d in docsets:
+			if d.status == 'installed':
+				console.show_activity('Checking ' + d.name + ' for update...')
+				for f in online:
+					if f.name == d.name:
+						if datetime.datetime.strptime(d.version.replace('Sept', 'Sep'), '%b %d, %Y') < datetime.datetime.strptime(f.version.replace('Sept', 'Sep'), '%b %d, %Y'):
+							d.status = 'Update Available'
+							d.version = f.version
+							self.updateAvailable.append(d)
+							
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		if not os.path.exists(imgPath):
@@ -243,6 +266,12 @@ class StackOverflowManager (object):
 		
 	def downloadStackOverflow(self, stackoverflow, action, refresh_main_view):
 		if not stackoverflow in self.downloading:
+			removeSoon = []
+			for d in self.updateAvailable:
+				if d.name+d.type == stackoverflow.name+stackoverflow.type:
+					removeSoon.append(d)
+			for d in removeSoon:
+				self.updateAvailable.remove(d)
 			stackoverflow.status = 'downloading'
 			self.downloading.append(stackoverflow)
 			action()
@@ -386,14 +415,17 @@ class StackOverflowManager (object):
 		s = round(size/p,2)
 		return '%s %s' % (s,size_name[i])
 	
-	def deleteStackOverflow(self, stackoverflow, post_action):
-		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' +  stackoverflow.name, 'Ok')
+	def deleteStackOverflow(self, stackoverflow, post_action, confirm = True):
+		but = 1
+		if confirm:
+			but = console.alert('Are you sure?', 'Would you like to delete the docset, ' +  stackoverflow.name, 'Ok')
 		if but == 1:
 			dbmanager = DBManager.DBManager()
 			dbmanager.DocsetRemoved(stackoverflow.id)
 			shutil.rmtree(stackoverflow.path)
 			stackoverflow.status = 'online'
-			post_action()
+			if not post_action == None:
+				post_action()
 			stackoverflow.path = None
 	
 	def getTypesForStackOverflow(self, stackoverflow):

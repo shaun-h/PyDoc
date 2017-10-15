@@ -29,7 +29,7 @@ class DocsetManagementView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
-		if not status == 'downloading':
+		if not status == 'downloading' or not 'stats' in self.data[row].keys:
 			cell.detail_text_label.text = status
 		else:
 			cell.detail_text_label.text = self.data[row]['stats']
@@ -44,7 +44,7 @@ class DocsetManagementView (object):
 		return cell
 		
 	def __getDetailImageForStatus(self, status):
-		if status == 'online' or status == 'updateAvailable':
+		if status == 'online' or status == 'Update Available':
 			return 'iob:ios7_cloud_download_outline_24'
 		else:
 			return 'iob:ios7_close_outline_24'
@@ -67,13 +67,21 @@ class DocsetManagementView (object):
 		self.refresh_main_view()
 		d = self.refresh_docsets_action()
 		refresh_view(d)
-						
+	
+	@ui.in_background
 	def action(self, sender):
-		if 'path' in sender.action.row and not sender.action.row['path'] == None:
-			self.delete_action(sender.action.row, self.refresh_all_views)
+		if sender.action.row['status'] == 'Update Available':
+			sender.action.row['status'] = 'removing...'
+			self.refresh()
+			self.delete_action(sender.action.row, None, False)
 			sender.action.row['path'] = None
-		else:
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
+		else:
+			if 'path' in sender.action.row and not sender.action.row['path'] == None:
+				self.delete_action(sender.action.row, self.refresh_all_views)
+				sender.action.row['path'] = None
+			else:
+				self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
 	def refresh(self):
 		tv.reload()
@@ -105,6 +113,7 @@ def get_view(docsets, download_action, refresh_docsets_action, delete_action, re
 def refresh_view(data):
 	tv.data_source.data = data
 	tv.reload_data()
+
 
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])

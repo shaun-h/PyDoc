@@ -19,6 +19,7 @@ import Image
 import io
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
+from distutils.version import LooseVersion
 
 class UserContributed (object):
 	def __init__(self):
@@ -155,6 +156,7 @@ class UserContributedManager (object):
 		self.headers = {'User-Agent': 'PyDoc-Pythonista'}
 		self.usercontributed = None
 		self.downloading = []
+		self.updateAvailable = []
 		self.workThreads = []
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
@@ -169,10 +171,16 @@ class UserContributedManager (object):
 					c.status = 'installed'
 					c.path = d.path
 					c.id = d.id
+					c.version = d.version
+		for d in self.updateAvailable:
+			for c in usercontributed:
+				if c.name == d.name:
+					c.status = "Update Available"
 		for d in self.__getDownloadingUserContributed():
 			for c in usercontributed:
 				if c.name == d.name:
 					c.status = d.status
+					c.version = d.version
 					try:
 						c.stats = d.stats
 					except KeyError:
@@ -201,6 +209,7 @@ class UserContributedManager (object):
 			else:
 				aa.image = self.__getIconWithName('Other')
 			aa.authorName = d[6]
+			aa.version = d[5]
 			ds.append(aa)
 		return ds
 	
@@ -239,6 +248,20 @@ class UserContributedManager (object):
 			usercontributed.append(u)
 		return sorted(usercontributed, key=lambda x: x.name.lower())
 	
+	def checkDocsetsForUpdates(self, docsets):
+		console.show_activity('Checking for updates...')
+		self.usercontributed = None
+		online = self.__getOnlineUserContributed()
+		for d in docsets:
+			if d.status == 'installed':
+				console.show_activity('Checking ' + d.name + ' for update...')
+				for f in online:
+					if f.name == d.name:
+						if LooseVersion(str(d.version).replace('/','')) < LooseVersion(str(f.version).replace('/','')):
+							d.status = 'Update Available'
+							d.version = f.version
+							self.updateAvailable.append(d)
+							
 	def __getLocalIcon(self, path):
 		imgPath = os.path.join(os.path.abspath('.'),path,'icon.png')
 		if not os.path.exists(imgPath):
@@ -255,8 +278,14 @@ class UserContributedManager (object):
 		if not os.path.exists(self.userContributedFolder):
 			os.mkdir(self.userContributedFolder)
 		
-	def downloadUserContributed(self, usercontributed, action, refresh_main_view):
+	def downloadUserContributed(self, usercontributed, action, refresh_main_view):	
 		if not usercontributed in self.downloading:
+			removeSoon = []
+			for d in self.updateAvailable:
+				if d.name == usercontributed.name:
+					removeSoon.append(d)
+			for d in removeSoon:
+				self.updateAvailable.remove(d)
 			usercontributed.status = 'downloading'
 			self.downloading.append(usercontributed)
 			action()
@@ -333,6 +362,7 @@ class UserContributedManager (object):
 		encodedImg = usercontributed.imageData
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', str(encodedImg), usercontributed.version, usercontributed.authorName)
+		print(usercontributed.version)
 		os.remove(filename)
 		if usercontributed in self.downloading:
 			self.downloading.remove(usercontributed)		
@@ -400,14 +430,17 @@ class UserContributedManager (object):
 		s = round(size/p,2)
 		return '%s %s' % (s,size_name[i])
 	
-	def deleteUserContributed(self, usercontributed, post_action):
-		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' +  usercontributed.name, 'Ok')
+	def deleteUserContributed(self, usercontributed, post_action, confirm = True):
+		but = 1
+		if confirm:
+			but = console.alert('Are you sure?', 'Would you like to delete the docset, ' +  usercontributed.name, 'Ok')
 		if but == 1:
 			dbmanager = DBManager.DBManager()
 			dbmanager.DocsetRemoved(usercontributed.id)
 			shutil.rmtree(usercontributed.path)
 			usercontributed.status = 'online'
-			post_action()
+			if not post_action == None:
+				post_action()
 			usercontributed.path = None
 	
 	def getTypesForUserContributed(self, usercontributed):

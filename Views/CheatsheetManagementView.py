@@ -45,7 +45,7 @@ class CheatsheetManagementView (object):
 		return cell
 		
 	def __getDetailImageForStatus(self, status):
-		if status == 'online' or status == 'updateAvailable':
+		if status == 'online' or status == 'Update Available':
 			return 'iob:ios7_cloud_download_outline_24'
 		else:
 			return 'iob:ios7_close_outline_24'
@@ -70,12 +70,18 @@ class CheatsheetManagementView (object):
 		refresh_view(d)
 						
 	def action(self, sender):
-		if not sender.action.row.path == None:
-			self.delete_action(sender.action.row, self.refresh_all_views)
+		if sender.action.row.status == 'Update Available':
+			sender.action.row.status = 'removing...'
+			self.refresh()
+			self.delete_action(sender.action.row, None, False)
 			sender.action.row.path = None
-			#self.refresh()
-		else:
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
+		else:
+			if not sender.action.row.path == None:
+				self.delete_action(sender.action.row, self.refresh_all_views)
+				sender.action.row.path = None
+			else:
+				self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
 	def refresh(self):
 		tv.reload()

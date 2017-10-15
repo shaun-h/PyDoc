@@ -60,6 +60,7 @@ class PyDoc(object):
 	def setup_docset_management_view(self):
 		docsets = self.docset_manager.getAvailableDocsets()
 		docset_management_view = DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data, self.theme_manager)
+		docset_management_view.right_button_items = [ui.ButtonItem(action=self.checkStandardDocsetsForUpdate, title='Check Docsets for Update')]
 		docset_management_view.background_color = self.theme_manager.currentTheme.backgroundColour
 		docset_management_view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		docset_management_view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -76,6 +77,7 @@ class PyDoc(object):
 	
 	def setup_cheatsheetmanagement_view(self):
 		view = CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets, self.theme_manager)
+		view.right_button_items = [ui.ButtonItem(action=self.checkCheatsheetsForUpdate, title='Check Cheatsheets for Update')]
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -94,6 +96,7 @@ class PyDoc(object):
 		
 	def setup_usercontributedmanagement_view(self):
 		view = UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager)
+		view.right_button_items = [ui.ButtonItem(action=self.checkUserContributedForUpdate, title='Check User Contributed for Update')]
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -103,6 +106,7 @@ class PyDoc(object):
 	
 	def setup_stackoverflowmanagement_view(self):
 		view = StackOverflowManagementView.get_view(self.stackoverflow_manager.downloadStackOverflow, self.refresh_main_view_data, self.stackoverflow_manager.deleteStackOverflow, self.stackoverflow_manager.getAvailableStackOverflows, self.theme_manager)
+		view.right_button_items = [ui.ButtonItem(action=self.checkStackOverflowForUpdate, title='Check Stack Overflows for Update')]
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -292,6 +296,30 @@ class PyDoc(object):
 		r.extend(webSearches)
 		return r
 	
+	@ui.in_background
+	def checkStandardDocsetsForUpdate(self, sender):
+		self.docset_manager.checkDocsetsForUpdates(self.docset_management_view.data_source.data)
+		self.docset_management_view.reload()
+		console.hide_activity()
+	
+	@ui.in_background
+	def checkCheatsheetsForUpdate(self, sender):
+		self.cheatsheet_manager.checkDocsetsForUpdates(self.cheatsheet_management_view.data_source.data)
+		self.cheatsheet_management_view.reload()
+		console.hide_activity()
+
+	@ui.in_background
+	def checkUserContributedForUpdate(self, sender):
+		self.usercontributed_manager.checkDocsetsForUpdates(self.usercontributed_management_view.data_source.data)
+		self.usercontributed_management_view.reload()
+		console.hide_activity()
+
+	@ui.in_background
+	def checkStackOverflowForUpdate(self, sender):
+		self.stackoverflow_manager.checkDocsetsForUpdates(self.stackoverflow_management_view.data_source.data)
+		self.stackoverflow_management_view.reload()
+		console.hide_activity()
+		
 if __name__ == '__main__':
 	try:
 		py = PyDoc()

@@ -17,6 +17,7 @@ from os.path import splitext, basename
 from objc_util import ns, ObjCClass
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
+from distutils.version import LooseVersion
 
 class Docset(object):
 	def __init__(self):
@@ -26,9 +27,11 @@ class Docset(object):
 class DocsetManager (object):
 	def __init__(self, iconPath, typeIconPath, serverManager):
 		self.typeManager = TypeManager.TypeManager(typeIconPath)
-		self.localServer = None #'http://localhost/feeds/'
+		# self.localServer = 'http://localhost/feeds/'
+		self.localServer = None
 		self.docsets = []
 		self.downloading = []
+		self.updateAvailable = []
 		self.docsetFolder = 'Docsets/Standard'
 		self.plistPath = 'Contents/Info.plist'
 		self.indexPath = 'Contents/Resources/docSet.dsidx'
@@ -76,9 +79,15 @@ class DocsetManager (object):
 					c['status'] = 'installed'
 					c['path'] = d['path']
 					c['id'] = d['id']
+					c['version'] = d['version']
+		for d in self.updateAvailable:
+			for c in docsets:
+				if c['name'] == d['name']:
+					c['status'] = 'Update Available'
 		for d in self.__getDownloadingDocsets():
 			for c in docsets:
 				if c['name'] == d['name']:
+					c['version'] = d['version']
 					c['status'] = d['status']
 					try:
 						c['stats'] = d['stats']
@@ -102,6 +111,7 @@ class DocsetManager (object):
 			aa['id'] = d[0]
 			aa['path'] = os.path.join(os.path.abspath('.'),d[2])
 			aa['image'] = self.__getIconWithName(d[4])
+			aa['version'] = d[5]
 			ds.append(aa)
 		return ds
 
@@ -124,6 +134,17 @@ class DocsetManager (object):
 			name = '.NET Framework'
 		return name
 	
+	def checkDocsetsForUpdates(self, docsets):
+		console.show_activity('Checking for updates...')
+		for d in docsets:
+			if d['status'] == 'installed':
+				console.show_activity('Checking ' + d['name'] + ' for update...')
+				f = self.__getDownloadLink(d['feed'])
+				if LooseVersion(str(d['version']).replace('/','')) < LooseVersion(f['version'].replace('/','')):
+					d['status'] = 'Update Available'
+					d['version'] = f['version']
+					self.updateAvailable.append(d)
+					
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		if not os.path.exists(imgPath):
@@ -164,8 +185,14 @@ class DocsetManager (object):
 	def downloadDocset(self, docset, action, refresh_main_view):
 		cont = self.__checkDocsetCanDownload(docset)
 		if cont and not docset in self.downloading:
-			docset['status'] = 'downloading'
 			self.downloading.append(docset)
+			removeSoon = []
+			for d in self.updateAvailable:
+				if d['name'] == docset['name']:
+					removeSoon.append(d)
+			for d in removeSoon:
+				self.updateAvailable.remove(d)
+			docset['status'] = 'downloading'
 			action()
 			workThread = LogThread.LogThread(target=self.__determineUrlAndDownload, args=(docset,action,refresh_main_view,))
 			self.workThreads.append(workThread)
@@ -660,15 +687,18 @@ class DocsetManager (object):
 			return ind
 	
 	
-	def deleteDocset(self, docset, post_action):
-		but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'] + '\n This may take a while.', 'Ok')
+	def deleteDocset(self, docset, post_action, confirm=True):
+		but = 1
+		if confirm:
+			but = console.alert('Are you sure?', 'Would you like to delete the docset, ' + docset['name'] + '\n This may take a while.', 'Ok')
 		if but == 1:
 			dbmanager = DBManager.DBManager()
 			dbmanager.DocsetRemoved(docset['id'])
 			shutil.rmtree(docset['path'])
 			docset['status'] = 'online'
 			docset['path'] = None
-			post_action()
+			if not post_action == None:
+				post_action()
 		
 if __name__ == '__main__':
 	dm = DocsetManager()
