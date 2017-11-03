@@ -60,15 +60,19 @@ def tableView_didSelectRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	
 def searchBar_textDidChange_(sel, cmd, searchBar, searchText):
 	s = ObjCInstance(sel)
-	if s.resultController.firstRun:
-		s.resultController.tableView().position = CGPoint(s.resultController.tableView().position().x, s.resultController.tableView().position().y-40)
-		s.resultController.firstRun = False
+	# if s.resultController.firstRun:
+		# s.resultController.tableView().position = CGPoint(s.resultController.tableView().position().x, s.resultController.tableView().position().y-40)
+		# s.resultController.firstRun = False
 	
 def searchBarTextDidBeginEditing_(sel, cmd, searchBar):
 	s = ObjCInstance(sel)
 	sb = ObjCInstance(searchBar)
 	sb.becomeFirstResponder()
-	sb.position = CGPoint(sb.position().x,sb.size().height*2-2)
+	sb.position = CGPoint(sb.position().x,(-sb.size().height)+40)
+	if s.resultController.firstRun:
+		s.resultController.tableView().position = CGPoint(s.resultController.tableView().position().x, s.resultController.tableView().position().y-40)
+		s.resultController.firstRun = False
+	# print(dir(sb))
 	
 def searchBarTextDidEndEditing_(sel, cmd, searchBar):
 	sb = ObjCInstance(searchBar)
@@ -142,7 +146,7 @@ class SearchTableView(ui.View):
 		self.tableView.extendedLayoutIncludesOpaqueBars = True
 		self.searchController.searchResultsUpdater = self.searchDelegate
 		self.searchController.dimsBackgroundDuringPresentation = True
-		self.searchController.hidesNavigationBarDuringPresentation = True
+		self.searchController.hidesNavigationBarDuringPresentation = False
 		self.searchController.searchBar().delegate = self.searchDelegate
 		self.searchController.searchBar().setPlaceholder_(ns('Search'))
 		self.tableView.tableHeaderView =self.searchController.searchBar();

@@ -1,5 +1,5 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager
-from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView
+from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView
 from Utilities import UISearchControllerWrapper
 import ui
 import console
@@ -19,12 +19,14 @@ class PyDoc(object):
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.webSearchManager = WebSearchManager.WebSearchManager('Images/types')
+		self.transfer_manager = TransferManager.TransferManager()
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_management_view = self.setup_docset_management_view()
 		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
 		self.usercontributed_management_view = self.setup_usercontributedmanagement_view()
 		self.stackoverflow_management_view = self.setup_stackoverflowmanagement_view()
+		self.transfer_management_view = self.setup_transfermanagement_view()
 		self.settings_view = self.setup_settings_view()
 		self.docsetView = self.setup_docset_view()
 		self.docsetIndexView = self.setup_docsetindex_view()
@@ -125,9 +127,23 @@ class PyDoc(object):
 		self.usercontributed_management_view.reload()
 		self.navigation_view.push_view(self.usercontributed_management_view)
 		console.hide_activity()
+	
+	def setup_transfermanagement_view(self):
+		view = TransferManagementView.get_view(self.transfer_manager.installDocset, self.refresh_main_view_data, self.transfer_manager.deleteDocset, self.transfer_manager.getAvailableDocsets, self.theme_manager, self.transfer_manager)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
 		
+	def show_transfermanagement_view(self):
+		self.transfer_management_view.data = self.transfer_manager.getAvailableDocsets()
+		self.transfer_management_view.reload()
+		self.navigation_view.push_view(self.transfer_management_view)
+	
 	def setup_settings_view(self):
-		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view,self.webSearchManager)
+		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view,self.webSearchManager, self.show_transfermanagement_view)
 		settings_view.background_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.bg_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
