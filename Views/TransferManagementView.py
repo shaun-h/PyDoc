@@ -3,7 +3,7 @@ import console
 import objc_util
 class TransferManagementView (object):
 	def __init__(self, install_action, refresh_main_view, delete_action, refresh_transfer_action, theme_manager, transfer_manager, tv):
-		self.data = []
+		self.data = refresh_transfer_action()
 		self.delete_action = delete_action
 		self.install_action = install_action
 		self.refresh_main_view = refresh_main_view
@@ -27,7 +27,7 @@ class TransferManagementView (object):
 	
 	def startServer(self, sender):
 		try:
-			data = self.transfer_manager.startTransferService('Resources', 'Docsets/Transfer', 8080)
+			data = self.transfer_manager.startTransferService('Resources', 'Docsets/Transfer', 8080, self.refresh_all_views)
 			console.alert('Started', 'Server is available on http://' + str(data['hostname']) + ':' + str(data['port']), hide_cancel_button = True, button1='Ok')
 			button = self.getButton()
 			self.view.right_button_items = [button]
@@ -36,7 +36,7 @@ class TransferManagementView (object):
 
 	@objc_util.on_main_thread
 	def stopServer(self, sender):
-		self.transfer_manager.stopTransferService()
+		self.transfer_manager.stopTransferService(self.refresh_all_views)
 		button = self.getButton()
 		self.view.right_button_items = [button]
 		
@@ -45,15 +45,19 @@ class TransferManagementView (object):
 		pass
 		
 	def tableview_number_of_sections(self, tableview):
-		return 1
+		return len(self.data.keys())
 		
 	def tableview_number_of_rows(self, tableview, section):
-		return len(self.data)
+		k = list(self.data.keys())[section]
+		return len(self.data[k])
+		
+	def tableview_title_for_header(self, tableview, section):
+		return list(self.data.keys())[section]
 		
 	def tableview_cell_for_row(self, tableview, section, row):
-		status = self.data[row].status
+		k = list(self.data.keys())[section]
 		cell = ui.TableViewCell('subtitle')
-		cell.text_label.text = self.data[row].name
+		cell.text_label.text = self.data[k][row].name
 		cell.border_color = self.theme_manager.currentTheme.tintColour
 		cell.background_color = self.theme_manager.currentTheme.backgroundColour
 		cell.bar_tint_color = self.theme_manager.currentTheme.tintColour
@@ -61,13 +65,13 @@ class TransferManagementView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
-		if not status == 'downloading':
-			cell.detail_text_label.text = status
+		if not self.data[k][row].status == 'Installing':
+			cell.detail_text_label.text = self.data[k][row].status
 		else:
-			cell.detail_text_label.text = self.data[row].stats
-		if not self.data[row].image == None:
-			cell.image_view.image = self.data[row].image
-		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
+			cell.detail_text_label.text = self.data[k][row].stats
+		if not self.data[k][row].image == None:
+			cell.image_view.image = self.data[k][row].image
+		iv = self.__getDetailButtonForStatus(self.data[k][row].status, cell.height, self.action, self.data[k][row])
 		iv.x = cell.content_view.width - (iv.width * 1.5)
 		iv.y = (cell.content_view.height) - (iv.height * 1.05)
 		iv.flex = 'L'
@@ -98,10 +102,14 @@ class TransferManagementView (object):
 	def refresh_all_views(self):
 		self.refresh_main_view()
 		d = self.refresh_transfer_action()
-		refresh_view(d)
-						
+		self.data = d
+		self.view.reload()
+	
+	@ui.in_background				
 	def action(self, sender):
 		if not sender.action.row.path == None:
+			sender.action.row.status = 'removing...'
+			self.refresh()
 			self.delete_action(sender.action.row, self.refresh_all_views)
 			sender.action.row.path = None
 		else:
@@ -137,6 +145,9 @@ def get_view(download_action, refresh_all_views, delete_action, refresh_transfer
 def refresh_view(data):
 	tv.data_source.data = data
 	tv.reload_data()
+	tv.reload()
+def refresh_v():
+	tv.reload()
 
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])

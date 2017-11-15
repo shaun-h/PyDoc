@@ -16,19 +16,22 @@ class DocsetIndexView (object):
 	def tableview_did_select(self, tableview, section, row):
 		if self.docsetType == 'docset':
 			data = 'file://' + os.path.join(self.docset['path'], 'Contents/Resources/Documents', self.data[row]['path'])
-			data = data.replace(' ', '%20')
+			data = data.replace(' ', '%20').replace('<', '%3E').replace('>', '%3C')
 		elif self.docsetType == 'cheatsheet':
 			data = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
-			data = data.replace(' ', '%20')
+			data = data.replace(' ', '%20').replace('<', '%3E').replace('>', '%3C')
 		elif self.docsetType == 'usercontributed':
 			data = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
-			data = data.replace(' ', '%20')
+			data = data.replace(' ', '%20').replace('<', '%3E').replace('>', '%3C')
+		elif self.docsetType == 'transfer':
+			data = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
+			data = data.replace(' ', '%20').replace('<', '%3E').replace('>', '%3C')
 		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Offline':
 			#url = 'file://' + os.path.join(self.docset.path, 'Contents/Resources/Documents', self.data[row]['path'])
 			data = self.stackOverflowOnlineCallback(self.data[row], self.docset)
 		elif self.docsetType == 'stackoverflow' and self.docset.type == 'Online':
 			data = self.data[row]['path']
-			data = data.replace(' ', '%20')
+			data = data.replace(' ', '%20').replace('<', '%3E').replace('>', '%3C')
 		self.indexSelectCallback(data)
 		
 	def tableview_number_of_sections(self, tableview):

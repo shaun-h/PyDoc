@@ -19,7 +19,7 @@ class PyDoc(object):
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.webSearchManager = WebSearchManager.WebSearchManager('Images/types')
-		self.transfer_manager = TransferManager.TransferManager()
+		self.transfer_manager = TransferManager.TransferManager('Images/icons','Images/types')
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_management_view = self.setup_docset_management_view()
@@ -53,7 +53,8 @@ class PyDoc(object):
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		stackoverflows = self.stackoverflow_manager.getDownloadedStackOverflows()
-		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, stackoverflows, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.stackoverflow_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager, self.build_offline_index_stackoverflow_selected_for_viewing)
+		transfers = self.transfer_manager.getInstalledDocsets()
+		main_view = UISearchControllerWrapper.get_view(DocsetListView.get_view(docsets, cheatsheets, usercontributed, stackoverflows, transfers, self.docset_selected_for_viewing, self.cheatsheet_selected_for_viewing, self.usercontributed_selected_for_viewing, self.stackoverflow_selected_for_viewing, self.transfer_selected_for_viewing, self.theme_manager), self.search_all_docsets, self.docset_index_selected_for_viewing, self.theme_manager, self.build_offline_index_stackoverflow_selected_for_viewing)
 		settings_button = ui.ButtonItem(title='Settings')
 		settings_button.action = self.show_settings_view
 		main_view.left_button_items = [settings_button]
@@ -75,7 +76,8 @@ class PyDoc(object):
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
 		usercontributed = self.usercontributed_manager.getDownloadedUserContributed()
 		stackoverflows = self.stackoverflow_manager.getDownloadedStackOverflows()
-		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed, stackoverflows)
+		transfers = self.transfer_manager.getInstalledDocsets()
+		DocsetListView.refresh_view(docsets, cheatsheets, usercontributed, stackoverflows, transfers)
 	
 	def setup_cheatsheetmanagement_view(self):
 		view = CheatsheetManagementView.get_view(self.cheatsheet_manager.downloadCheatsheet, self.refresh_main_view_data, self.cheatsheet_manager.deleteCheatsheet, self.cheatsheet_manager.getAvailableCheatsheets, self.theme_manager)
@@ -237,6 +239,21 @@ class PyDoc(object):
 		self.docsetView.name = stackoverflow.name
 		self.docsetIndexView.reload()
 		self.navigation_view.push_view(self.docsetIndexView)
+	
+	def transfer_selected_for_viewing(self, docset):
+		types = self.transfer_manager.getTypesForDocset(docset)
+		self.docsetView.tv.data_source.update_with_docset(docset, types, self.transfer_type_selected_for_viewing)
+		self.docsetView.tv.filterData = self.transfer_manager.getIndexesbyNameForDocsetSearch
+		self.docsetView.name = docset.name
+		self.docsetView.tv.reload()
+		self.navigation_view.push_view(self.docsetView)
+	
+	def transfer_type_selected_for_viewing(self, docset, type):
+		indexes = self.transfer_manager.getIndexesbyTypeForDocset(docset, type)
+		self.docsetIndexView.data_source.update_with_docset(docset, indexes, self.docset_index_selected_for_viewing, 'transfer')
+		self.docsetView.name = docset.name
+		self.docsetIndexView.reload()
+		self.navigation_view.push_view(self.docsetIndexView)
 		
 	def docset_index_selected_for_viewing(self, url):
 		self.docsetWebView.load_url(url)
@@ -274,6 +291,7 @@ class PyDoc(object):
 		cheatsheet = self.cheatsheet_manager.getIndexesbyNameForAllCheatsheet(name)
 		usercontributed = self.usercontributed_manager.getIndexesbyNameForAllUserContributed(name)
 		stackoverflow = self.stackoverflow_manager.getIndexesbyNameForAllStackOverflow(name)
+		transfers = self.transfer_manager.getIndexesbyNameForAllDocsets(name)
 		webSearches = self.webSearchManager.GetAllWebSearches(name)
 		
 		r = []
@@ -285,6 +303,8 @@ class PyDoc(object):
 			r.extend(usercontributed['first'])
 		if 'first' in stackoverflow.keys():
 			r.extend(stackoverflow['first'])
+		if 'first' in transfers.keys():
+			r.extend(transfers['first'])
 		if 'second' in standard.keys():
 			r.extend(standard['second'])
 		if 'second' in cheatsheet.keys():
@@ -292,7 +312,9 @@ class PyDoc(object):
 		if 'second' in usercontributed.keys():
 			r.extend(usercontributed['second'])
 		if 'second' in stackoverflow.keys():
-			r.extend(stackoverflow['second'])		
+			r.extend(stackoverflow['second'])
+		if 'second' in transfers.keys():
+			r.extend(transfers['second'])		
 		if 'third' in standard.keys():
 			r.extend(standard['third'])
 		if 'third' in cheatsheet.keys():
@@ -301,6 +323,8 @@ class PyDoc(object):
 			r.extend(usercontributed['third'])
 		if 'third' in stackoverflow.keys():
 			r.extend(stackoverflow['third'])
+		if 'third' in transfers.keys():
+			r.extend(transfers['third'])
 		if 'fourth' in standard.keys():
 			r.extend(standard['fourth'])
 		if 'fourth' in cheatsheet.keys():
@@ -309,6 +333,8 @@ class PyDoc(object):
 			r.extend(usercontributed['fourth'])
 		if 'fourth' in stackoverflow.keys():
 			r.extend(stackoverflow['fourth'])
+		if 'fourth' in transfers.keys():
+			r.extend(transfers['fourth'])
 		r.extend(webSearches)
 		return r
 	
