@@ -133,7 +133,12 @@ class TransferManager (object):
 		self.server = ServerThread(app, template_directory, file_upload_directory, port, callback)
 		self.server.start()
 		self.running = True
-		return {'hostname':socket.gethostbyname(socket.gethostname()), 'port':port}
+		ip = 'Unknown'
+		try:
+			ip = socket.gethostbyname(socket.gethostname())
+		except socket.gaierror:
+			pass
+		return {'hostname':socket.gethostname(), 'port':port, 'ip':ip}
 
 	def stopTransferService(self, action):
 		self.server.shutdown()

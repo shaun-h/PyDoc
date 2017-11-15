@@ -28,7 +28,7 @@ class TransferManagementView (object):
 	def startServer(self, sender):
 		try:
 			data = self.transfer_manager.startTransferService('Resources', 'Docsets/Transfer', 8080, self.refresh_all_views)
-			console.alert('Started', 'Server is available on http://' + str(data['hostname']) + ':' + str(data['port']), hide_cancel_button = True, button1='Ok')
+			console.alert('Started', 'Server is available on http://' + str(data['hostname']) + ':' + str(data['port']) + ' IP:' + str(data['ip']), hide_cancel_button = True, button1='Ok')
 			button = self.getButton()
 			self.view.right_button_items = [button]
 		except OSError as e:
