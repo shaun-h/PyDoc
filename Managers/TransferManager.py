@@ -137,7 +137,10 @@ class TransferManager (object):
 		try:
 			ip = socket.gethostbyname(socket.gethostname())
 		except socket.gaierror:
-			pass
+			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			s.connect(("8.8.8.8", 80))
+			ip = s.getsockname()[0]
+			s.close()
 		return {'hostname':socket.gethostname(), 'port':port, 'ip':ip}
 
 	def stopTransferService(self, action):
