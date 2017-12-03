@@ -126,8 +126,9 @@ class DocsetManager (object):
 					toCheck.remove(d)
 			ret.append(f)
 		for d in toCheck:
+			d['status'] = 'installed'
 			ret.append(d)
-		return ret
+		return sorted(ret, key=lambda x: x['version'], reverse=True)
 		
 	def getAvailableDocsets(self):
 		docsets = self.__getOnlineDocsets()
@@ -195,7 +196,7 @@ class DocsetManager (object):
 	def checkDocsetsForUpdates(self, docsets):
 		console.show_activity('Checking for updates...')
 		for d in docsets:
-			if d['hasVersions'] and d['status'] == 'installed':
+			if not d['hasVersions'] and d['status'] == 'installed':
 				console.show_activity('Checking ' + d['name'] + ' for update...')
 				f = self.__getDownloadLink(d['feed'])
 				if LooseVersion(str(d['version']).replace('/','')) < LooseVersion(f['version'].replace('/','')):
