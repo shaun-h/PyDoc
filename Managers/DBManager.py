@@ -26,5 +26,5 @@ class DBManager (object):
 		return self.connection.execute('SELECT * FROM docsets').fetchall()
 	
 	def InstalledDocsetsByType(self, type):
-		return self.connection.execute('SELECT * FROM docsets WHERE type = (?) ORDER BY name COLLATE NOCASE', (type,)).fetchall()
+		return self.connection.execute('SELECT * FROM docsets WHERE type = (?) ORDER BY name COLLATE NOCASE ASC, version DESC', (type,)).fetchall()
 		

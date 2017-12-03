@@ -1,5 +1,5 @@
 from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager
-from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView, DocsetManagementVersionView
 from Utilities import UISearchControllerWrapper
 import ui
 import console
@@ -22,6 +22,7 @@ class PyDoc(object):
 		self.transfer_manager = TransferManager.TransferManager('Images/icons','Images/types')
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
+		self.docset_management_version_view = self.setup_docset_management_version_view()
 		self.docset_management_view = self.setup_docset_management_view()
 		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
 		self.usercontributed_management_view = self.setup_usercontributedmanagement_view()
@@ -62,8 +63,17 @@ class PyDoc(object):
 
 	def setup_docset_management_view(self):
 		docsets = self.docset_manager.getAvailableDocsets()
-		docset_management_view = DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data, self.theme_manager)
+		docset_management_view = DocsetManagementView.get_view(docsets, self.docset_manager.downloadDocset, self.docset_manager.getAvailableDocsets, self.docset_manager.deleteDocset, self.refresh_main_view_data, self.theme_manager, self.show_docset_versions_view)
 		docset_management_view.right_button_items = [ui.ButtonItem(action=self.checkStandardDocsetsForUpdate, title='Check for Update')]
+		docset_management_view.background_color = self.theme_manager.currentTheme.backgroundColour
+		docset_management_view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		docset_management_view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		docset_management_view.tint_color = self.theme_manager.currentTheme.tintColour
+		docset_management_view.title_color = self.theme_manager.currentTheme.textColour
+		return docset_management_view
+	
+	def setup_docset_management_version_view(self):
+		docset_management_view = DocsetManagementVersionView.get_view([], self.docset_manager.downloadDocset, self.docset_manager.getOnlineVersions, self.docset_manager.deleteDocset, self.refresh_main_view_data, self.theme_manager, None)
 		docset_management_view.background_color = self.theme_manager.currentTheme.backgroundColour
 		docset_management_view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		docset_management_view.bg_color = self.theme_manager.currentTheme.backgroundColour
@@ -88,6 +98,12 @@ class PyDoc(object):
 		view.tint_color = self.theme_manager.currentTheme.tintColour
 		view.title_color = self.theme_manager.currentTheme.textColour
 		return view
+	
+	def show_docset_versions_view(self, docset):
+		versions = self.docset_manager.getOnlineVersions(docset)
+		self.docset_management_version_view.data_source.data = versions
+		self.docset_management_version_view.reload_data()
+		self.navigation_view.push_view(self.docset_management_version_view)
 		
 	def show_docset_management_view(self):
 		self.navigation_view.push_view(self.docset_management_view)

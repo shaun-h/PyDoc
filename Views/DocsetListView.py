@@ -80,29 +80,29 @@ class DocsetListView (object):
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
 		cell.selected_background_view = selectedBackgroundView
 		if section == self.docsetSection:
-			cell.text_label.text = self.docsets[row]['name']
+			cell.text_label.text = self.docsets[row]['name'] + ' ' + str(self.docsets[row]['version'])
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.docsets[row]['image'] == None:
 				cell.image_view.image = self.docsets[row]['image']
 		elif section == self.cheatsheetSection:
-			cell.text_label.text = self.cheatsheets[row].name
+			cell.text_label.text = self.cheatsheets[row].name + ' ' + str(self.cheatsheets[row].version)
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.cheatsheets[row].image == None:
 				cell.image_view.image = self.cheatsheets[row].image
 		elif section == self.transfersSection:
-			cell.text_label.text = self.transfers[row].name
+			cell.text_label.text = self.transfers[row].name + ' ' + str(self.transfers[row].version)
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.transfers[row].image == None:
 				cell.image_view.image = self.transfers[row].image
 		elif section == self.usercontributedSection:
-			cell.text_label.text = self.usercontributed[row].name
+			cell.text_label.text = self.usercontributed[row].name  + ' ' + str(self.usercontributed[row].version)
 			cell.detail_text_label.text = 'Contributed by ' + self.usercontributed[row].authorName
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.usercontributed[row].image == None:
 				cell.image_view.image = self.usercontributed[row].image
 		elif section == self.stackoverflowSection:
 			head, _sep, tail = self.stackoverflows[row].name.rpartition(self.stackoverflows[row].type)
-			cell.text_label.text = head + tail + ' (' +self.stackoverflows[row].type + ')'
+			cell.text_label.text = head + tail + ' (' +self.stackoverflows[row].type + ')' + ' ' + str(self.stackoverflows[row].version)
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.stackoverflows[row].image == None:
 				cell.image_view.image = self.stackoverflows[row].image
