@@ -1,13 +1,14 @@
 import ui
 
-class UserContributedManagementView (object):
-	def __init__(self, download_action, refresh_main_view, delete_action, refresh_usercontributed_action, theme_manager):
-		self.data = []
-		self.delete_action = delete_action
+class DocsetManagementVersionView (object):
+	def __init__(self, docsets, download_action, refresh_docsets_action, delete_action,refresh_main_view, theme_manager, show_versions_view):
+		self.data = docsets
 		self.download_action = download_action
-		self.refresh_main_view = refresh_main_view
-		self.refresh_usercontributed_action = refresh_usercontributed_action
+		self.refresh_docsets_action = refresh_docsets_action
+		self.delete_action = delete_action
+		self.refresh_main_view = refresh_main_view	
 		self.theme_manager = theme_manager
+		self.show_versions_view = show_versions_view
 		
 	def tableview_did_select(self, tableview, section, row):
 		pass
@@ -19,9 +20,9 @@ class UserContributedManagementView (object):
 		return len(self.data)
 		
 	def tableview_cell_for_row(self, tableview, section, row):
-		status = self.data[row].status
+		status = self.data[row]['status']
 		cell = ui.TableViewCell('subtitle')
-		cell.text_label.text = self.data[row].name
+		cell.text_label.text = self.data[row]['name'] + ' ' + str(self.data[row]['version'])
 		cell.border_color = self.theme_manager.currentTheme.tintColour
 		cell.background_color = self.theme_manager.currentTheme.backgroundColour
 		cell.bar_tint_color = self.theme_manager.currentTheme.tintColour
@@ -29,13 +30,12 @@ class UserContributedManagementView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
-		if not status == 'downloading':
+		if not status == 'downloading' or not 'stats' in self.data[row].keys():
 			cell.detail_text_label.text = status
 		else:
-			cell.detail_text_label.text = self.data[row].stats
-		cell.detail_text_label.text = cell.detail_text_label.text + ' - Contributed by ' + self.data[row].authorName
-		if not self.data[row].image == None:
-			cell.image_view.image = self.data[row].image
+			cell.detail_text_label.text = self.data[row]['stats']
+		if not self.data[row]['image'] == None:
+			cell.image_view.image = self.data[row]['image']
 		iv = self.__getDetailButtonForStatus(status, cell.height, self.action, self.data[row])
 		iv.x = cell.content_view.width - (iv.width * 1.5)
 		iv.y = (cell.content_view.height) - (iv.height * 1.05)
@@ -66,20 +66,24 @@ class UserContributedManagementView (object):
 
 	def refresh_all_views(self):
 		self.refresh_main_view()
-		d = self.refresh_usercontributed_action()
+		d = self.refresh_docsets_action()
 		refresh_view(d)
-						
+	
+	@ui.in_background
 	def action(self, sender):
-		if sender.action.row.status == 'Update Available':
-			sender.action.row.status = 'removing...'
+		if sender.action.row['status'] == 'Update Available':
+			sender.action.row['status'] = 'removing...'
 			self.refresh()
 			self.delete_action(sender.action.row, None, False)
-			sender.action.row.path = None
+			sender.action.row['path'] = None
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 		else:
-			if not sender.action.row.path == None:
+			if 'path' in sender.action.row and not sender.action.row['path'] == None:
+				sender.action.row['status'] = 'removing...'
+				self.refresh()
 				self.delete_action(sender.action.row, self.refresh_all_views)
-				sender.action.row.path = None
+				sender.action.row['path'] = None
+				self.refresh_all_views()
 			else:
 				self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
@@ -99,13 +103,13 @@ class CustomAction(object):
 		print('Did you need to set the action?')
 
 tv = ui.TableView()
-def get_view(download_action, refresh_all_views, delete_action, refresh_usercontributed_action, theme_manager):
+def get_view(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view, theme_manager,show_versions_view):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
-	tv.name = 'User Contributed Docsets'
-	data = UserContributedManagementView(download_action, refresh_all_views, delete_action, refresh_usercontributed_action, theme_manager)
+	tv.name = 'Docsets'
+	data = DocsetManagementVersionView(docsets, download_action, refresh_docsets_action, delete_action, refresh_main_view, theme_manager,show_versions_view)
 	tv.delegate = data
 	tv.data_source = data
 	return tv
@@ -114,6 +118,8 @@ def refresh_view(data):
 	tv.data_source.data = data
 	tv.reload_data()
 
+
 if __name__ == '__main__':
 	view = get_view([{'name':'test','status':'online'},{'name':'test2','status':'downloaded'}])
 	view.present()
+

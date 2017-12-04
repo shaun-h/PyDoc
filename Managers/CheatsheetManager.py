@@ -14,6 +14,7 @@ import shutil
 import sqlite3
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
+from distutils.version import LooseVersion
 
 class Cheatsheet (object):
 	def __init__(self):
@@ -123,10 +124,12 @@ class CheatsheetManager (object):
 		self.headers = {'User-Agent': 'PyDoc-Pythonista'}
 		self.cheatsheets = None
 		self.downloading = []
+		self.updateAvailable = []
 		self.workThreads = []
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
 		self.__createCheatsheetFolder()
+		self.createInitialSearchIndexAllDocsets()
 	
 	def getAvailableCheatsheets(self):
 		cheatsheets = self.__getOnlineCheatsheets()
@@ -136,10 +139,16 @@ class CheatsheetManager (object):
 					c.status = 'installed'
 					c.path = d.path
 					c.id = d.id
+					c.version = d.version
+		for d in self.updateAvailable:
+			for c in cheatsheets:
+				if c.name == d.name:
+					c.status = "Update Available"
 		for d in self.__getDownloadingCheatsheets():
 			for c in cheatsheets:
 				if c.name == d.name:
 					c.status = d.status
+					c.version = d.version
 					try:
 						c.stats = d.stats
 					except KeyError:
@@ -162,6 +171,7 @@ class CheatsheetManager (object):
 			aa.id = d[0]
 			aa.path = os.path.join(os.path.abspath('.'),d[2])
 			aa.image = self.__getIconWithName(d[4])
+			aa.version = d[5]
 			ds.append(aa)
 		return ds
 	
@@ -194,6 +204,20 @@ class CheatsheetManager (object):
 			cheatsheets.append(c)
 		return sorted(cheatsheets, key=lambda x: x.name.lower())
 	
+	def checkDocsetsForUpdates(self, docsets):
+		console.show_activity('Checking for updates...')
+		self.cheatsheets = None
+		online = self.__getOnlineCheatsheets()
+		for d in docsets:
+			if d.status == 'installed':
+				console.show_activity('Checking ' + d.name + ' for update...')
+				for f in online:
+					if f.name == d.name:
+						if LooseVersion(str(d.version).replace('/','')) < LooseVersion(str(f.version).replace('/','')):
+							d.status = 'Update Available'
+							d.version = f.version
+							self.updateAvailable.append(d)
+					
 	def __getIconWithName(self, name):
 		imgPath = os.path.join(os.path.abspath('.'), self.iconPath, name+'.png')
 		if not os.path.exists(imgPath):
@@ -208,6 +232,13 @@ class CheatsheetManager (object):
 		if not cheatsheet in self.downloading:
 			cheatsheet.status = 'downloading'
 			self.downloading.append(cheatsheet)
+			removeSoon = []
+			for d in self.updateAvailable:
+				if d.name == cheatsheet.name:
+					removeSoon.append(d)
+			for d in removeSoon:
+				self.updateAvailable.remove(d)
+			cheatsheet.status = 'downloading'
 			action()
 			workThread = LogThread.LogThread(target=self.__determineUrlAndDownload, args=(cheatsheet,action,refresh_main_view,))
 			self.workThreads.append(workThread)
@@ -319,8 +350,20 @@ class CheatsheetManager (object):
 				if not newType == None and not newType.name == t[1]:
 					conn.execute("UPDATE searchIndex SET type=(?) WHERE rowid = (?)", (newType.name, t[0] ))
 				conn.commit()
+		indexSql = 'CREATE INDEX ix_searchIndex_name ON searchIndex(name)'
+		conn.execute(indexSql)
 		conn.close()
 		self.postProcess(cheatsheet, refresh_main_view)
+	
+	def createInitialSearchIndexAllDocsets(self):
+		docsets = self.getDownloadedCheatsheets()
+		for d in docsets:
+			indexPath = os.path.join(d.path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			conn = sqlite3.connect(indexPath)
+			indexSql = 'CREATE INDEX IF NOT EXISTS ix_searchIndex_name ON searchIndex(name)'
+			conn.execute(indexSql)
+			conn.close()
 		
 	def postProcess(self, cheatsheet, refresh_main_view):
 		cheatsheet.status = 'installed'
@@ -335,14 +378,17 @@ class CheatsheetManager (object):
 		s = round(size/p,2)
 		return '%s %s' % (s,size_name[i])
 	
-	def deleteCheatsheet(self, cheatsheet, post_action):
-		but = console.alert('Are you sure?', 'Would you like to delete the cheatsheet, ' +  cheatsheet.name, 'Ok')
+	def deleteCheatsheet(self, cheatsheet, post_action, confirm = True):
+		but = 1
+		if confirm:
+			but = console.alert('Are you sure?', 'Would you like to delete the cheatsheet, ' +  cheatsheet.name, 'Ok')
 		if but == 1:
 			dbmanager = DBManager.DBManager()
 			dbmanager.DocsetRemoved(cheatsheet.id)
 			shutil.rmtree(cheatsheet.path)
 			cheatsheet.status = 'online'
-			post_action()
+			if not post_action == None:
+				post_action()
 			cheatsheet.path = None
 	
 	def getTypesForCheatsheet(self, cheatsheet):
@@ -367,8 +413,15 @@ class CheatsheetManager (object):
 		c = conn.execute(sql, (type.name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes ={}
+		type = None		
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesbyTypeAndNameForDocset(self, cheatsheet, typeName, name):
@@ -380,8 +433,15 @@ class CheatsheetManager (object):
 		c = conn.execute(sql, (typeName, name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes ={}
+		type = None		
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 		
 	def getIndexesByNameForDocset(self, cheatsheet, name):
@@ -393,8 +453,15 @@ class CheatsheetManager (object):
 		c = conn.execute(sql, (name,))
 		data = c.fetchall()
 		conn.close()
+		dTypes ={}
+		type = None
 		for t in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return indexes
 	
 	def getIndexesForCheatsheet(self, cheatsheet):
@@ -406,28 +473,61 @@ class CheatsheetManager (object):
 		c = conn.execute(sql)
 		data = c.fetchall()
 		conn.close()
+		dTypes ={}
+		type = None
 		for i in data:
-			indexes.append({'type':self.typeManager.getTypeForName(t[0]), 'name':t[1],'path':t[2]})
+			if t[0] in dTypes.keys():
+				type= dTypes[t[0]]
+			else:
+				type = self.typeManager.getTypeForName(t[0])
+				dTypes[t[0]] = type
+			indexes.append({'type':type, 'name':t[1],'path':t[2]})
 		return types
 		
 	def getIndexesbyNameForAllCheatsheet(self, name):
 		if name == None or name == '':
+			return {}
+		else:
+			docsets = self.getDownloadedCheatsheets()
+			indexes = {}
+			for d in docsets:
+				ind = self.getIndexesbyNameForDocsetSearch(d, name)
+				for k in ind:
+					if not k in indexes.keys():
+						indexes[k] = []
+					indexes[k].extend(ind[k])
+			return indexes
+			
+	def getIndexesbyNameForDocsetSearch(self, docset, name):
+		if name == None or name == '':
 			return []
 		else:
-			name = '%'+name+'%'
-			docsets = self.getDownloadedCheatsheets()
-			indexes = []
-			for d in docsets:
-				ind = []
-				path = d.path
-				indexPath = os.path.join(path, self.indexPath)
-				conn = sqlite3.connect(indexPath)
-				sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
-				c = conn.execute(sql, (name, name.replace(' ','%'),))
-				data = c.fetchall()
-				conn.close()
-				dTypes = {}
-				for t in data:
+			ind = {}
+			path = docset.path
+			indexPath = os.path.join(path, self.indexPath)
+			conn = sqlite3.connect(indexPath)
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name, ))
+			data = {'first' : c.fetchall()}
+
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name.replace(' ','%'), name, ))
+			data['second'] = c.fetchall()
+						
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, (name.replace(' ','%')+'%', name.replace(' ','%'), name, ))
+			data['third'] = c.fetchall()
+			
+			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) AND name NOT LIKE (?) ORDER BY name COLLATE NOCASE'
+			c = conn.execute(sql, ('%'+name.replace(' ','%')+'%',name.replace(' ','%')+'%',name.replace(' ','%'), name, ))
+			data['fourth'] = c.fetchall()
+						
+									
+			conn.close()
+			dTypes = {}
+			for k in data:
+				ind[k] = []
+				for t in data[k]:
 					url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
 					url = url.replace(' ', '%20')
 					type = None
@@ -436,34 +536,7 @@ class CheatsheetManager (object):
 					else:
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
-					ind.append({'name':t[1], 'path':url, 'icon':d.image,'docsetname':d.name,'type':type})
-				indexes.extend(ind)
-			return indexes
-			
-	def getIndexesbyNameForDocset(self, docset, name):
-		if name == None or name == '':
-			return []
-		else:
-			name = '%'+name+'%'
-			ind = []
-			path = docset.path
-			indexPath = os.path.join(path, self.indexPath)
-			conn = sqlite3.connect(indexPath)
-			sql = 'SELECT type, name, path FROM searchIndex WHERE name LIKE (?) OR name LIKE (?) ORDER BY name COLLATE NOCASE'
-			c = conn.execute(sql, (name, name.replace(' ','%'),))
-			data = c.fetchall()
-			conn.close()
-			dTypes = {}
-			for t in data:
-				url = 'file://' + os.path.join(path, 'Contents/Resources/Documents', t[2])
-				url = url.replace(' ', '%20')
-				type = None
-				if t[0] in dTypes.keys():
-					type= dTypes[t[0]]
-				else:
-					type = self.typeManager.getTypeForName(t[0])
-					dTypes[t[0]] = type
-				ind.append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type})
+					ind[k].append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type, 'callbackOverride':'', 'docset': docset})
 			return ind
 		
 if __name__ == '__main__':
