@@ -80,7 +80,8 @@ class DocsetListView (object):
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
 		cell.selected_background_view = selectedBackgroundView
 		if section == self.docsetSection:
-			cell.text_label.text = self.docsets[row]['name'] + ' ' + str(self.docsets[row]['version'])
+			versionText = str(self.docsets[row]['version'])
+			cell.text_label.text = self.docsets[row]['name'] + ' ' + versionText
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.docsets[row]['image'] == None:
 				cell.image_view.image = self.docsets[row]['image']

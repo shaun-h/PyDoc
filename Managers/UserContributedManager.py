@@ -227,6 +227,7 @@ class UserContributedManager (object):
 		url = url + self.jsonServerLocation
 		data = requests.get(url).text
 		data = ast.literal_eval(data)
+
 		usercontributed = []
 		defaultIcon = self.__getIconWithName('Other')
 		for k,d in data['docsets'].items():
