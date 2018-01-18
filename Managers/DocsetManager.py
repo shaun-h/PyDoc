@@ -164,6 +164,7 @@ class DocsetManager (object):
 		dbManager = DBManager.DBManager()
 		t = dbManager.InstalledDocsetsByType('standard')
 		ds = []
+		feeds = self.__getDocsetFeeds()
 		for d in t:
 			aa = {}
 			aa['name'] = d[1]
@@ -171,6 +172,10 @@ class DocsetManager (object):
 			aa['path'] = os.path.join(os.path.abspath('.'),d[2])
 			aa['image'] = self.__getIconWithName(d[4])
 			aa['version'] = d[5]
+			aa['hasVersions'] = False
+			for f in feeds:
+				if f['name'] == aa['name']:
+					aa['hasVersions'] = f['hasVersions']
 			ds.append(aa)
 		return ds
 
@@ -342,158 +347,6 @@ class DocsetManager (object):
 		tar.extractall(path=extract_location, members = self.track_progress(tar, docset, len(tar.getmembers())))
 		tar.close()
 		os.remove(filename)
-		# if docset['name'] == 'Drupal 7':
-		# 	p = os.path.join(extract_location, 'Drupal.docset')
-		# 	n = 'Drupal7.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Drupal 8':
-		# 	p = os.path.join(extract_location, 'Drupal.docset')
-		# 	n = 'Drupal8.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Java SE6':
-		# 	p = os.path.join(extract_location, 'Java.docset')
-		# 	n = 'JavaSE6.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Java SE7':
-		# 	p = os.path.join(extract_location, 'Java.docset')
-		# 	n = 'JavaSE7.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Java SE8':
-		# 	p = os.path.join(extract_location, 'Java.docset')
-		# 	n = 'JavaSE8.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Java SE9':
-		# 	p = os.path.join(extract_location, 'Java.docset')
-		# 	n = 'JavaSE9.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Lua 5.1':
-		# 	p = os.path.join(extract_location, 'Lua.docset')
-		# 	n = 'Lua51.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Lua 5.2':
-		# 	p = os.path.join(extract_location, 'Lua.docset')
-		# 	n = 'Lua52.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Lua 5.3':
-		# 	p = os.path.join(extract_location, 'Lua.docset')
-		# 	n = 'Lua53.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Qt 4':
-		# 	p = os.path.join(extract_location, 'Qt.docset')
-		# 	n = 'Qt4.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Qt 5':
-		# 	p = os.path.join(extract_location, 'Qt.docset')
-		# 	n = 'Qt5.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Ruby':
-		# 	p = os.path.join(extract_location, 'Ruby.docset')
-		# 	n = 'Ruby1.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Ruby 2':
-		# 	p = os.path.join(extract_location, 'Ruby.docset')
-		# 	n = 'Ruby2.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Ruby on Rails 3':
-		# 	p = os.path.join(extract_location, 'Ruby on Rails.docset')
-		# 	n = 'Ruby on Rails3.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Ruby on Rails 4':
-		# 	p = os.path.join(extract_location, 'Ruby on Rails.docset')
-		# 	n = 'Ruby on Rails4.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Ruby on Rails 5':
-		# 	p = os.path.join(extract_location, 'Ruby on Rails.docset')
-		# 	n = 'Ruby on Rails5.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Zend Framework 1':
-		# 	p = os.path.join(extract_location, 'Zend_Framework.docset')
-		# 	n = 'Zend_Framework1.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Zend Framework 2':
-		# 	p = os.path.join(extract_location, 'Zend_Framework.docset')
-		# 	n = 'Zend_Framework2.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
-		# elif docset['name'] == 'Zend Framework 3':
-		# 	p = os.path.join(extract_location, 'Zend_Framework.docset')
-		# 	n = 'Zend_Framework3.docset'
-		# 	m = os.path.join(self.docsetFolder, n)
-		# 	b = os.path.join(extract_location, n)
-		# 	os.rename(p, b)
-		# 	shutil.move(b, m)
-		# 	shutil.rmtree(extract_location)
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(docset['name'], m, 'standard', docset['iconName'], docset['version'])
 		self.indexDocset(docset, refresh_main_view, m)
@@ -541,7 +394,6 @@ class DocsetManager (object):
 		docsets = self.getDownloadedDocsets()
 		for d in docsets:
 			indexPath = os.path.join(d['path'], self.indexPath)
-			conn = sqlite3.connect(indexPath)
 			conn = sqlite3.connect(indexPath)
 			indexSql = 'CREATE INDEX IF NOT EXISTS ix_searchIndex_name ON searchIndex(name)'
 			conn.execute(indexSql)
@@ -707,8 +559,9 @@ class DocsetManager (object):
 					else:
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
-					ind[k].append({'name':t[1], 'path':url, 'icon':docset['image'],'docsetname':docset['name'],'type':type, 'callbackOverride':'', 'docset': docset})
+					ind[k].append({'name':t[1], 'path':url, 'icon':docset['image'],'docsetname':docset['name'],'type':type, 'callbackOverride':'', 'docset': docset,'hasVersions':docset['hasVersions'],'version':docset['version']})
 			return ind
+			
 	
 	
 	def deleteDocset(self, docset, post_action, confirm=True):

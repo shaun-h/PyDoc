@@ -1,5 +1,5 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager
-from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView, DocsetManagementVersionView
+from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager, MigrationManager
+from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView, DocsetManagementVersionView, UserContributedManagementVersionView
 from Utilities import UISearchControllerWrapper
 import ui
 import console
@@ -25,6 +25,7 @@ class PyDoc(object):
 		self.docset_management_version_view = self.setup_docset_management_version_view()
 		self.docset_management_view = self.setup_docset_management_view()
 		self.cheatsheet_management_view = self.setup_cheatsheetmanagement_view()
+		self.usercontributed_management_version_view = self.setup_usercontributed_management_version_view()
 		self.usercontributed_management_view = self.setup_usercontributedmanagement_view()
 		self.stackoverflow_management_view = self.setup_stackoverflowmanagement_view()
 		self.transfer_management_view = self.setup_transfermanagement_view()
@@ -33,6 +34,13 @@ class PyDoc(object):
 		self.docsetIndexView = self.setup_docsetindex_view()
 		self.docsetWebView = self.setup_docsetweb_view()
 		UISearchControllerWrapper.Theme_manager = self.theme_manager
+		console.hide_activity()
+		self.migration_manager = MigrationManager.MigrationManager(self.dbmanager, self.docset_manager, self.usercontributed_manager)
+		self.perform_migrations()
+	
+	def perform_migrations(self):
+		console.show_activity('Performing Migrations')
+		self.migration_manager.perform_migrations()
 		console.hide_activity()
 	
 	def setup(self):
@@ -81,6 +89,15 @@ class PyDoc(object):
 		docset_management_view.title_color = self.theme_manager.currentTheme.textColour
 		return docset_management_view
 	
+	def setup_usercontributed_management_version_view(self):
+		view = UserContributedManagementVersionView.get_view([], self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager, None)
+		view.background_color = self.theme_manager.currentTheme.backgroundColour
+		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
+		view.bg_color = self.theme_manager.currentTheme.backgroundColour
+		view.tint_color = self.theme_manager.currentTheme.tintColour
+		view.title_color = self.theme_manager.currentTheme.textColour
+		return view
+	
 	def refresh_main_view_data(self):
 		docsets = self.docset_manager.getDownloadedDocsets()
 		cheatsheets = self.cheatsheet_manager.getDownloadedCheatsheets()
@@ -104,7 +121,13 @@ class PyDoc(object):
 		self.docset_management_version_view.data_source.data = versions
 		self.docset_management_version_view.reload_data()
 		self.navigation_view.push_view(self.docset_management_version_view)
-		
+	
+	def show_usercontributed_versions_view(self, docset):
+		versions = self.usercontributed_manager.getOnlineVersions(docset)
+		self.usercontributed_management_version_view.data_source.data = versions
+		self.usercontributed_management_version_view.reload_data()
+		self.navigation_view.push_view(self.usercontributed_management_version_view)
+	
 	def show_docset_management_view(self):
 		self.navigation_view.push_view(self.docset_management_view)
 		
@@ -115,7 +138,7 @@ class PyDoc(object):
 		console.hide_activity()
 		
 	def setup_usercontributedmanagement_view(self):
-		view = UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager)
+		view = UserContributedManagementView.get_view(self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager, self.show_usercontributed_versions_view)
 		view.right_button_items = [ui.ButtonItem(action=self.checkUserContributedForUpdate, title='Check for Update')]
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour

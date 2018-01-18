@@ -17,6 +17,7 @@ import clipboard
 import os
 import Image
 import io
+import copy
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
 from distutils.version import LooseVersion
@@ -36,6 +37,8 @@ class UserContributed (object):
 		self.__authorName = ''
 		self.__onlineid = ''
 		self.__imageData = ''
+		self.__hasVersions = False
+		self.__specificVersions = []
 		
 	@property
 	def version(self):
@@ -141,6 +144,23 @@ class UserContributed (object):
 	def imageData(self, data):
 		self.__imageData = data
 		
+	@property
+	def hasVersions(self):
+		return self.__hasVersions
+	
+	@hasVersions.setter
+	def hasVersions(self, data):
+		self.__hasVersions = data
+	
+	@property
+	def specificVersions(self):
+		return self.__specificVersions
+	
+	@specificVersions.setter
+	def specificVersions(self, data):
+		self.__specificVersions = data
+		
+		
 class UserContributedManager (object):
 	def __init__(self, serverManager, iconPath, typeIconPath):
 		self.typeManager = TypeManager.TypeManager(typeIconPath)
@@ -230,6 +250,7 @@ class UserContributedManager (object):
 
 		usercontributed = []
 		defaultIcon = self.__getIconWithName('Other')
+		
 		for k,d in data['docsets'].items():
 			u = UserContributed()
 			u.name = d['name']
@@ -238,6 +259,9 @@ class UserContributedManager (object):
 			u.version = d['version']
 			u.archive = d['archive']
 			u.authorName = d['author']['name']
+			u.hasVersions = 'specific_versions' in d.keys()
+			if u.hasVersions:
+				u.specificVersions = d['specific_versions']
 			if 'icon' in d.keys():
 				imgdata = base64.standard_b64decode(d['icon'])
 				u.image = ui.Image.from_data(imgdata)
@@ -262,6 +286,17 @@ class UserContributedManager (object):
 							d.status = 'Update Available'
 							d.version = f.version
 							self.updateAvailable.append(d)
+	
+	def getOnlineVersions(self, d):
+		data = [d]
+		for version in d.specificVersions:
+			da = copy.copy(d)
+			da.specificVersions = []
+			da.status = 'online'
+			da.version = version['version']
+			da.archive = version['archive']
+			data.append(da)
+		return data
 							
 	def __getLocalIcon(self, path):
 		imgPath = os.path.join(os.path.abspath('.'),path,'icon.png')
@@ -363,7 +398,6 @@ class UserContributedManager (object):
 		encodedImg = usercontributed.imageData
 		dbManager = DBManager.DBManager()
 		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', str(encodedImg), usercontributed.version, usercontributed.authorName)
-		print(usercontributed.version)
 		os.remove(filename)
 		if usercontributed in self.downloading:
 			self.downloading.remove(usercontributed)		

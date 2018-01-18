@@ -22,7 +22,10 @@ def tableView_cellForRowAtIndexPath_(sel,cmd,tableView,indexPath):
 	tv = ObjCInstance(sel)
 	cell = ui.TableViewCell('subtitle')
 	cell.text_label.text = data['name']
-	cell.detail_text_label.text = data['docsetname']
+	version = ''
+	if 'hasVersions' in data.keys() and data['hasVersions']:
+		version = ' - ' + data['version']
+	cell.detail_text_label.text = data['docsetname'] + version
 	cell.image_view.image = data['icon']
 	cell.border_color = Theme_manager.currentTheme.borderColour
 	cell.background_color = Theme_manager.currentTheme.backgroundColour
