@@ -295,7 +295,12 @@ class UserContributedManager (object):
 			da.status = 'online'
 			da.version = version['version']
 			da.archive = version['archive']
-			data.append(da)
+			add = True
+			for toCheck in data:
+				if toCheck.name == da.name and toCheck.version == da.version:
+					add = False
+			if add:
+				data.append(da)
 		return data
 							
 	def __getLocalIcon(self, path):
