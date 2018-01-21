@@ -11,7 +11,8 @@ class DocsetManagementView (object):
 		self.show_versions_view = show_versions_view
 		
 	def tableview_did_select(self, tableview, section, row):
-		self.show_versions_view(self.data[row])
+		if self.data[row]['hasVersions']:
+			self.show_versions_view(self.data[row])
 		
 	def tableview_number_of_sections(self, tableview):
 		return 1

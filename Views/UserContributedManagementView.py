@@ -11,6 +11,7 @@ class UserContributedManagementView (object):
 		self.show_versions_view = show_versions_view
 		
 	def tableview_did_select(self, tableview, section, row):
+		if self.data[row].hasVersions:
 			self.show_versions_view(self.data[row])
 		
 	def tableview_number_of_sections(self, tableview):
@@ -30,6 +31,7 @@ class UserContributedManagementView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
+		cell.selectable = False
 		if not self.data[row].hasVersions:
 			if not status == 'downloading':
 				cell.detail_text_label.text = status
@@ -42,12 +44,10 @@ class UserContributedManagementView (object):
 			iv.y = (cell.content_view.height) - (iv.height * 1.05)
 			iv.flex = 'L'
 			cell.content_view.add_subview(iv)
-			cell.selectable = False
 		else:
 			cell.accessory_type = 'disclosure_indicator'
 		if not self.data[row].image == None:
 			cell.image_view.image = self.data[row].image
-		
 		return cell
 		
 	def __getDetailImageForStatus(self, status):
