@@ -30,7 +30,7 @@ class UserContributedManagementVersionView (object):
 		cell.tint_color = self.theme_manager.currentTheme.tintColour
 		cell.text_label.text_color = self.theme_manager.currentTheme.textColour
 		cell.detail_text_label.text_color = self.theme_manager.currentTheme.subTextColour
-		if not status == 'downloading' or not 'stats' in self.data[row].keys():
+		if not status == 'downloading' or self.data[row].stats == '':
 			cell.detail_text_label.text = status
 		else:
 			cell.detail_text_label.text = self.data[row].stats
@@ -42,6 +42,7 @@ class UserContributedManagementVersionView (object):
 		iv.flex = 'L'
 		cell.content_view.add_subview(iv)
 		cell.selectable = False
+		cell.detail_text_label.text = cell.detail_text_label.text + ' - Contributed by ' + self.data[row].authorName
 		return cell
 		
 	def __getDetailImageForStatus(self, status):
@@ -71,19 +72,16 @@ class UserContributedManagementVersionView (object):
 	
 	@ui.in_background
 	def action(self, sender):
-		if sender.action.row['status'] == 'Update Available':
-			sender.action.row['status'] = 'removing...'
+		if sender.action.row.status == 'Update Available':
+			sender.action.row.status = 'removing...'
 			self.refresh()
 			self.delete_action(sender.action.row, None, False)
-			sender.action.row['path'] = None
 			self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 		else:
-			if 'path' in sender.action.row and not sender.action.row['path'] == None:
-				sender.action.row['status'] = 'removing...'
+			if not sender.action.row.path == None:
+				sender.action.row.status = 'removing...'
 				self.refresh()
 				self.delete_action(sender.action.row, self.refresh_all_views)
-				sender.action.row['path'] = None
-				self.refresh_all_views()
 			else:
 				self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				

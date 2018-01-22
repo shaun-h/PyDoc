@@ -3,14 +3,27 @@ import sqlite3
 class DBManager (object):
 	def __init__(self):
 		self.docsetDBLocation = 'Docsets/docsets.db'
+		self.migrationDBLocation = '.migrations.db'
 		self.connection = None
 		self.SetupDocsetDB()
-		
+		self.SetMigrationDB()
+				
 	def SetupDocsetDB(self):
 		self.connection = sqlite3.connect(self.docsetDBLocation)
 		c = self.connection.cursor()
 		c.execute('CREATE TABLE IF NOT EXISTS docsets(ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Path TEXT NOT NULL, Type TEXT NOT NULL, Icon TEXT NOT NULL, Version REAL NULL, OtherData TEXT NOT NULL);')
-		c.execute('CREATE TABLE IF NOT EXISTS migrations(ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Completed BOOLEAN NOT NULL)')
+		self.connection.commit()
+		
+	def SetMigrationDB(self):
+		self.migrationconnection = sqlite3.connect(self.migrationDBLocation)
+		mc = self.migrationconnection.cursor()
+		mc.execute('CREATE TABLE IF NOT EXISTS migrations(ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Completed BOOLEAN NOT NULL)')
+		self.migrationconnection.commit()
+		
+	def RunQueryOnDocsetDB(self, query):
+		self.connection = sqlite3.connect(self.docsetDBLocation)
+		c = self.connection.cursor()
+		c.execute(query)
 		self.connection.commit()
 	
 	def DocsetInstalled(self, name, path, type, icon, version, otherdata = ''):
@@ -31,22 +44,22 @@ class DBManager (object):
 		return self.connection.execute('SELECT * FROM docsets WHERE type = (?) ORDER BY name COLLATE NOCASE ASC, version DESC', (type,)).fetchall()
 	
 	def AddMigration(self, name, completed = False):
-		records = self.connection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchall()
+		records = self.migrationconnection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchall()
 		if len(records) == 0:
-			c = self.connection.cursor()
+			c = self.migrationconnection.cursor()
 			c.execute('INSERT INTO migrations (Name, Completed) VALUES (?,?)',(name,completed,))
-			self.connection.commit()
+			self.migrationconnection.commit()
 	
 	def UpdateMigration(self, name, completed):
-		records = self.connection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchall()
+		records = self.migrationconnection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchall()
 		if len(records) > 0:
-			c = self.connection.cursor()
+			c = self.migrationconnection.cursor()
 		
-			c.execute('UPDATE migrations SET Completed = ? WHERE name like ?)',(completed,name,))
-			self.connection.commit()
+			c.execute('UPDATE migrations SET Completed = (?) WHERE name like (?)',(completed,name,))
+			self.migrationconnection.commit()
 	
 	def GetMigration(self, name):
-		record = self.connection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchone()
+		record = self.migrationconnection.execute('SELECT * FROM migrations WHERE Name like (?)',(name,)).fetchone()
 		return record 
 		
 		

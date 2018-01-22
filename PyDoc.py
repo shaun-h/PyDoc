@@ -1,4 +1,4 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager, UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager, MigrationManager
+from Managers import DocsetManager, ServerManager, CheatsheetManager , UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager, MigrationManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView, DocsetManagementVersionView, UserContributedManagementVersionView
 from Utilities import UISearchControllerWrapper
 import ui
@@ -18,6 +18,9 @@ class PyDoc(object):
 		self.cheatsheet_manager = CheatsheetManager.CheatsheetManager(ServerManager.ServerManager(), 'Images/icons', 'Images/types')
 		self.usercontributed_manager = UserContributedManager.UserContributedManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
+		self.migration_manager = MigrationManager.MigrationManager(self.dbmanager, self.docset_manager, self.usercontributed_manager, self.docsetFolder)
+		self.perform_migrations()
+		self.setup()
 		self.webSearchManager = WebSearchManager.WebSearchManager('Images/types')
 		self.transfer_manager = TransferManager.TransferManager('Images/icons','Images/types')
 		self.main_view = self.setup_main_view()
@@ -35,8 +38,7 @@ class PyDoc(object):
 		self.docsetWebView = self.setup_docsetweb_view()
 		UISearchControllerWrapper.Theme_manager = self.theme_manager
 		console.hide_activity()
-		self.migration_manager = MigrationManager.MigrationManager(self.dbmanager, self.docset_manager, self.usercontributed_manager)
-		self.perform_migrations()
+
 	
 	def perform_migrations(self):
 		console.show_activity('Performing Migrations')
@@ -90,7 +92,7 @@ class PyDoc(object):
 		return docset_management_view
 	
 	def setup_usercontributed_management_version_view(self):
-		view = UserContributedManagementVersionView.get_view([], self.usercontributed_manager.downloadUserContributed, self.refresh_main_view_data, self.usercontributed_manager.deleteUserContributed, self.usercontributed_manager.getAvailableUserContributed, self.theme_manager, None)
+		view = UserContributedManagementVersionView.get_view([], self.usercontributed_manager.downloadUserContributed, self.usercontributed_manager.getOnlineVersions, self.usercontributed_manager.deleteUserContributed, self.refresh_main_view_data, self.theme_manager, None)
 		view.background_color = self.theme_manager.currentTheme.backgroundColour
 		view.bar_tint_color = self.theme_manager.currentTheme.tintColour
 		view.bg_color = self.theme_manager.currentTheme.backgroundColour

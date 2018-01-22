@@ -100,10 +100,10 @@ class DocsetListView (object):
 				cell.image_view.image = self.transfers[row].image
 		elif section == self.usercontributedSection:
 			cell.text_label.text = self.usercontributed[row].name
-			versionText = str(self.docsets[row]['version'])
-			if not self.docsets[row]['hasVersions']:
+			versionText = ' - ' + str(self.usercontributed[row].version)
+			if not self.usercontributed[row].hasVersions:
 				versionText = ''
-			cell.detail_text_label.text = 'Contributed by ' + self.usercontributed[row].authorName + ' - ' + versionText
+			cell.detail_text_label.text = 'Contributed by ' + self.usercontributed[row].authorName + versionText
 			cell.accessory_type = 'disclosure_indicator'
 			if not self.usercontributed[row].image == None:
 				cell.image_view.image = self.usercontributed[row].image

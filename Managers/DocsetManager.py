@@ -314,7 +314,7 @@ class DocsetManager (object):
 		self.installDocset(local_filename, docset, refresh_main_view)
 	
 	def __downloadFile(self, url, docset):
-		local_filename = self.docsetFolder+'/'+str(docset['version'])+url.split('/')[-1]
+		local_filename = self.docsetFolder+'/'+str(docset['version'].replace('/','_'))+url.split('/')[-1]
 		r = requests.get(url, headers = self.headers, stream=True)
 		ret = None
 		if r.status_code == 200:

@@ -18,6 +18,7 @@ import os
 import Image
 import io
 import copy
+import yaml
 from Managers import DBManager, TypeManager
 from Utilities import LogThread
 from distutils.version import LooseVersion
@@ -180,6 +181,7 @@ class UserContributedManager (object):
 		self.workThreads = []
 		self.downloadThreads = []
 		self.uiUpdateThreads = []
+		self.lastDocsetGroup = None
 		self.__createUserContributedFolder()
 		self.createInitialSearchIndexAllDocsets()
 	
@@ -187,20 +189,20 @@ class UserContributedManager (object):
 		usercontributed = self.__getOnlineUserContributed()
 		for d in self.__getDownloadedUserContributed():
 			for c in usercontributed:
-				if c.name == d.name:
+				if c.name == d.name and c.version == d.version:
 					c.status = 'installed'
 					c.path = d.path
 					c.id = d.id
-					c.version = d.version
 		for d in self.updateAvailable:
 			for c in usercontributed:
 				if c.name == d.name:
 					c.status = "Update Available"
 		for d in self.__getDownloadingUserContributed():
 			for c in usercontributed:
-				if c.name == d.name:
+				if c.name == d.name and c.version == d.version:
 					c.status = d.status
 					c.version = d.version
+					c.hasVersions = d.hasVersions
 					try:
 						c.stats = d.stats
 					except KeyError:
@@ -221,14 +223,15 @@ class UserContributedManager (object):
 			aa.name = d[1]
 			aa.id = d[0]
 			aa.path = os.path.join(os.path.abspath('.'),d[2])
-			#aa.image = self.__getLocalIcon(d[2])
 			imgData = str(d[4])
 			if not imgData == '':
 				imgdata = base64.standard_b64decode(imgData)
 				aa.image = ui.Image.from_data(imgdata)
 			else:
 				aa.image = self.__getIconWithName('Other')
-			aa.authorName = d[6]
+			od = yaml.load(d[6])
+			aa.authorName = od['author']
+			aa.hasVersions = od['hasVersions']
 			aa.version = d[5]
 			ds.append(aa)
 		return ds
@@ -278,7 +281,7 @@ class UserContributedManager (object):
 		self.usercontributed = None
 		online = self.__getOnlineUserContributed()
 		for d in docsets:
-			if d.status == 'installed':
+			if not d.hasVersions and d.status == 'installed':
 				console.show_activity('Checking ' + d.name + ' for update...')
 				for f in online:
 					if f.name == d.name:
@@ -287,21 +290,48 @@ class UserContributedManager (object):
 							d.version = f.version
 							self.updateAvailable.append(d)
 	
-	def getOnlineVersions(self, d):
+	def getOnlineVersions(self, doc= None):
+		d = None
+		if doc == None:
+			d = self.lastDocsetGroup
+		else:
+			self.lastDocsetGroup = doc
+			d = doc
 		data = [d]
+		downloaded = self.getDownloadedUserContributed()
+		endCheck = []
+		for dad in downloaded:
+			if dad.name == d.name:
+				endCheck.append(dad)
+		toRemoveOrig = [i for i in endCheck if i.name==d.name and i.version == d.version]
+		for rt in toRemoveOrig:
+			endCheck.remove(rt)
 		for version in d.specificVersions:
-			da = copy.copy(d)
-			da.specificVersions = []
-			da.status = 'online'
-			da.version = version['version']
-			da.archive = version['archive']
-			add = True
-			for toCheck in data:
-				if toCheck.name == da.name and toCheck.version == da.version:
-					add = False
-			if add:
-				data.append(da)
-		return data
+			if not '_comment' in version.keys():
+				da = copy.copy(d)
+				da.specificVersions = []
+				da.status = 'online'
+				da.version = version['version']
+				da.archive = version['archive'].replace('\\','')
+				da.path = None
+				for down in downloaded:
+					if da.name == down.name and da.version == down.version:
+						da.status = 'installed'
+						da.path = down.path
+						da.id = down.id
+						toRemoveFromEndCheck = [i for i in endCheck if i.name==da.name and i.version == da.version]
+						for rt in toRemoveFromEndCheck:
+							endCheck.remove(rt)
+				add = True
+				for toCheck in data:
+					if toCheck.name == da.name and toCheck.version == da.version:
+						add = False
+				if add:
+					data.append(da)
+		for e in endCheck:
+			e.status = 'installed'
+			data.append(e)
+		return sorted(data, key=lambda x: x.version, reverse=True)
 							
 	def __getLocalIcon(self, path):
 		imgPath = os.path.join(os.path.abspath('.'),path,'icon.png')
@@ -368,7 +398,7 @@ class UserContributedManager (object):
 		self.installUserContributed(local_filename, usercontributed, refresh_main_view)
 	
 	def __downloadFile(self, url, usercontributed):
-		local_filename = self.userContributedFolder+'/'+url.split('/')[-1]
+		local_filename = self.userContributedFolder+'/'+str(usercontributed.version).replace('/','_')+url.split('/')[-1]
 		r = requests.get(url, headers = self.headers, stream=True)
 		ret = None
 		if r.status_code == 200:
@@ -387,22 +417,24 @@ class UserContributedManager (object):
 							done = 100 * dl / int(total_length)
 							usercontributed.stats = str(round(done,2)) + '% ' + str(self.convertSize(dl)) + ' / '+ str(self.convertSize(float(total_length)))
 						else:
-							 usercontributed.stats = str(self.convertSize(dl))
-		
+							usercontributed.stats = str(self.convertSize(dl))
 		r.close()	
 		return ret		
 		
 	def installUserContributed(self, filename, usercontributed, refresh_main_view):
-		extract_location = self.userContributedFolder
+		extract_location = os.path.join(self.userContributedFolder, '_'+usercontributed.name.replace('/','_'), '_'+usercontributed.version.replace('/','_'))
 		usercontributed.status = 'Preparing to install: This might take a while.'
 		tar = tarfile.open(filename, 'r:gz')
 		n = [name for name in tar.getnames() if '/' not in name][0]
-		m = os.path.join(self.userContributedFolder, n)
+		m = os.path.join(extract_location, n)
 		tar.extractall(path=extract_location, members = self.track_progress(tar, usercontributed, len(tar.getmembers())))
 		tar.close()
 		encodedImg = usercontributed.imageData
 		dbManager = DBManager.DBManager()
-		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', str(encodedImg), usercontributed.version, usercontributed.authorName)
+		otherAtt = {}
+		otherAtt['author'] = usercontributed.authorName
+		otherAtt['hasVersions'] = usercontributed.hasVersions
+		dbManager.DocsetInstalled(usercontributed.name, m, 'usercontributed', str(encodedImg), usercontributed.version, str(otherAtt))
 		os.remove(filename)
 		if usercontributed in self.downloading:
 			self.downloading.remove(usercontributed)		
@@ -479,9 +511,10 @@ class UserContributedManager (object):
 			dbmanager.DocsetRemoved(usercontributed.id)
 			shutil.rmtree(usercontributed.path)
 			usercontributed.status = 'online'
+			usercontributed.path = None
 			if not post_action == None:
 				post_action()
-			usercontributed.path = None
+
 	
 	def getTypesForUserContributed(self, usercontributed):
 		types = []
@@ -628,7 +661,7 @@ class UserContributedManager (object):
 					else:
 						type = self.typeManager.getTypeForName(t[0])
 						dTypes[t[0]] = type
-					ind[k].append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type, 'callbackOverride':'', 'docset': docset})
+					ind[k].append({'name':t[1], 'path':url, 'icon':docset.image,'docsetname':docset.name,'type':type, 'callbackOverride':'', 'docset': docset, 'hasVersions':docset.hasVersions,'version':docset.version})
 			return ind
 			
 if __name__ == '__main__':

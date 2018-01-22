@@ -75,6 +75,7 @@ class UserContributedManagementView (object):
 		d = self.refresh_usercontributed_action()
 		refresh_view(d)
 						
+	@ui.in_background
 	def action(self, sender):
 		if sender.action.row.status == 'Update Available':
 			sender.action.row.status = 'removing...'
@@ -85,7 +86,6 @@ class UserContributedManagementView (object):
 		else:
 			if not sender.action.row.path == None:
 				self.delete_action(sender.action.row, self.refresh_all_views)
-				sender.action.row.path = None
 			else:
 				self.download_action(sender.action.row, self.refresh, self.refresh_all_views)
 				
