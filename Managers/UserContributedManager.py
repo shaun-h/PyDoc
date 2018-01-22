@@ -230,8 +230,11 @@ class UserContributedManager (object):
 			else:
 				aa.image = self.__getIconWithName('Other')
 			od = yaml.load(d[6])
-			aa.authorName = od['author']
-			aa.hasVersions = od['hasVersions']
+			if type(od) is type({}): 
+				aa.authorName = od['author']
+				aa.hasVersions = od['hasVersions']
+			else:
+				aa.authorName = od
 			aa.version = d[5]
 			ds.append(aa)
 		return ds
