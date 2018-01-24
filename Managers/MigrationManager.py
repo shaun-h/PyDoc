@@ -5,13 +5,12 @@ import os
 import shutil
 
 class MigrationManager (object):
-	def __init__(self, dbmanager, docsetmanager, usercontributionmanager, docsetfolder):
+	def __init__(self, dbmanager, docsetfolder):
 		self.dbmanager = dbmanager 
-		self.docsetmanager = docsetmanager
-		self.usercontributedmanager = usercontributionmanager
 		self.migrations = {'change_version_column_to_text':self.change_version_column_to_text}
 		self.docsetfolder = docsetfolder
-	
+
+		
 	def perform_migrations(self):
 		for migration in self.migrations.keys():
 			if self.check_migration_required(migration):
