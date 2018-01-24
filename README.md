@@ -28,7 +28,6 @@ Check the releases section to have a look at the latest releases available.
 
 ## Road Map
 
-- Transfer functionality
 - Live updating for theme change (no restart required)
 
 ## Known Issues
