@@ -399,7 +399,7 @@ class Updater (object):
 		file = zipfile.ZipFile(BytesIO(request.content))
 		toRemove = file.namelist()[0]
 			
-		filelist = [f for f in os.listdir('.') if not f in ['Docsets', '.wcsync', '.themesConfig', '.migrations.db']]
+		filelist = [f for f in os.listdir('.') if not f in ['Docsets', '.wcsync', '.themesConfig', '.migrations.db', '.settings']]
 		for f in filelist:
 			if os.path.isdir(f):
 				shutil.rmtree(f)

@@ -7,12 +7,12 @@ from objc_util import ObjCClass, NSURL, ns
 from Utilities import Updater
 	
 class SettingsView (object):
-	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view, websearch_manager, show_transfer_management_view):
+	def __init__(self, show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view, websearch_manager, show_transfer_management_view, settings_manager):
 		self.data = ['Standard Docsets', 'Cheat Sheets', 'User Contributed Docsets', 'Stack Overflow Docsets', 'Transfer Docsets']
 		self.webSearch_data = ['Add Web Search', 'Enable/Disable Web Searches', 'Remove Web Search', 'Refresh Web Search Icons']
 		self.ack_data = [{'text':'Dash','url':'https://kapeli.com/dash'}]
 		self.updates_data = ['Check for Update', 'Reinstall Current Version', 'Install Version', 'Install Pre-release Version']
-		self.theme_data = ['Change theme']
+		self.ui_data = ['Change theme', 'Presentation Style']
 		self.manage_docset_row = 0
 		self.manage_cheatsheet_row = 1
 		self.manage_usercontributed_row = 2
@@ -31,10 +31,11 @@ class SettingsView (object):
 		self.ack_section_number = 1
 		self.websearch_section_number = 2
 		self.pydoc_updates_section_number = 3
-		self.theme_section_number = 4
+		self.ui_section_number = 4
 		self.updater = Updater.Updater()
 		self.theme_manager = theme_manager
 		self.websearch_manager = websearch_manager
+		self.settings_manager = settings_manager
 	
 	@ui.in_background
 	def tableview_did_select(self, tableview, section, row):
@@ -69,7 +70,7 @@ class SettingsView (object):
 				ret = console.alert('Warning','Pre-release versions can have bugs and be unstable, including corrupting your installation. Only install a pre-release version if you are sure. Would you like to install a pre-release version?', hide_cancel_button=True, button1='No', button2 = 'Yes')
 				if ret == 2:
 					self.updater.showAvailableVersions(True)
-		if self.theme_section_number == section:
+		if self.ui_section_number == section:
 			if row == 0:
 				themes = self.theme_manager.themes
 				data = [x for x in themes.keys()]
@@ -78,6 +79,14 @@ class SettingsView (object):
 					if not t == self.theme_manager.themeFileName:
 						self.theme_manager.saveThemeToUse(t)
 						ret = console.alert('Saved', 'Please restart PyDoc for your theme change to take affect.', button1 = 'Ok', hide_cancel_button=True)
+			elif row == 1:
+				styles = ['default', 'panel']
+				t = dialogs.list_dialog('Please choose your presentation style', styles)
+				if not t == None:
+					if not t == self.settings_manager.settings['ui_style']:
+						self.settings_manager.settings['ui_style'] = t
+						self.settings_manager.save_settings()
+						ret = console.alert('Saved', 'Please restart PyDoc for your presentation to take affect.', button1 = 'Ok', hide_cancel_button=True)
 		if section == self.websearch_section_number:
 			if row == self.add_websearches_row:
 				dialogs.alert('Info','Please include {query} in your url this will be replaced with your search query.',hide_cancel_button=True,button1='Ok')
@@ -143,8 +152,8 @@ class SettingsView (object):
 			return len(self.ack_data)
 		if section == self.pydoc_updates_section_number:
 			return len(self.updates_data)
-		if section == self.theme_section_number:
-			return len(self.theme_data)
+		if section == self.ui_section_number:
+			return len(self.ui_data)
 		if section == self.websearch_section_number:
 			return len(self.webSearch_data)
 		
@@ -168,8 +177,8 @@ class SettingsView (object):
 			cell.text_label.text = self.ack_data[row]['text']
 		elif section == self.pydoc_updates_section_number:
 			cell.text_label.text = self.updates_data[row]
-		elif section == self.theme_section_number:
-			cell.text_label.text = self.theme_data[row]
+		elif section == self.ui_section_number:
+			cell.text_label.text = self.ui_data[row]
 		elif section == self.websearch_section_number:
 			cell.text_label.text = self.webSearch_data[row]
 		return cell
@@ -181,16 +190,16 @@ class SettingsView (object):
 			return 'Docsets are provided by Dash the MacOS docset browser. Please checkout Dash please by clicking the link below.'
 		if section == self.pydoc_updates_section_number:
 			return 'Update PyDoc'
-		if section == self.theme_section_number:
-			return 'Themes'
+		if section == self.ui_section_number:
+			return 'UI'
 		if section == self.websearch_section_number:
 			return 'Manage Web Search'
 		
 	def tableview_title_for_footer(self, tableview, section):
 		if section == self.pydoc_updates_section_number:
 			return 'Current Version - v' + self.updater.currentVersion
-		elif section == self.theme_section_number:
-			return 'Current Theme - ' + self.theme_manager.currentTheme.themeName
+		elif section == self.ui_section_number:
+			return 'Current Theme - ' + self.theme_manager.currentTheme.themeName + '\r\nPresentation Style - ' + self.settings_manager.settings['ui_style']
 			
 	def open_url(self, url):
 		UIApplication = ObjCClass('UIApplication')
@@ -199,13 +208,13 @@ class SettingsView (object):
 		sharedApplication.openURL_(internalurl)
 
 tv = ui.TableView('grouped')
-def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager, show_transfer_management_view):
+def get_view(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager, show_transfer_management_view, settings_manager):
 	w,h = ui.get_screen_size()
 	tv.width = w
 	tv.height = h
 	tv.flex = 'WH'
 	tv.name = 'Settings' 
-	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager, show_transfer_management_view)
+	data = SettingsView(show_docset_management_view, show_cheatsheet_management_view, show_usercontributed_management_view, theme_manager, show_stackoverflow_management_view,websearch_manager, show_transfer_management_view, settings_manager)
 	tv.delegate = data
 	tv.data_source = data
 	return tv

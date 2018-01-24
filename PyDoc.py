@@ -1,4 +1,4 @@
-from Managers import DocsetManager, ServerManager, CheatsheetManager , UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager, MigrationManager
+from Managers import DocsetManager, ServerManager, CheatsheetManager , UserContributedManager, DBManager, ThemeManager, StackOverflowManager, WebSearchManager, TransferManager, MigrationManager, SettingsManager
 from Views import DocsetManagementView, SettingsView, DocsetListView, DocsetView, DocsetIndexView, DocsetWebView, CheatsheetManagementView, UserContributedManagementView, StackOverflowManagementView, TransferManagementView, DocsetManagementVersionView, UserContributedManagementVersionView
 from Utilities import UISearchControllerWrapper
 import ui
@@ -22,6 +22,7 @@ class PyDoc(object):
 		self.stackoverflow_manager = StackOverflowManager.StackOverflowManager(ServerManager.ServerManager(), 'Images/icons','Images/types')
 		self.webSearchManager = WebSearchManager.WebSearchManager('Images/types')
 		self.transfer_manager = TransferManager.TransferManager('Images/icons','Images/types')
+		self.settings_manager = SettingsManager.SettingsManager()
 		self.main_view = self.setup_main_view()
 		self.navigation_view = self.setup_navigation_view()
 		self.docset_management_version_view = self.setup_docset_management_version_view()
@@ -185,7 +186,7 @@ class PyDoc(object):
 		self.navigation_view.push_view(self.transfer_management_view)
 	
 	def setup_settings_view(self):
-		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view,self.webSearchManager, self.show_transfermanagement_view)
+		settings_view = SettingsView.get_view(self.show_docset_management_view, self.show_cheatsheetmanagement_view, self.show_usercontributedmanagement_view, self.theme_manager, self.show_stackoverflowmanagement_view,self.webSearchManager, self.show_transfermanagement_view, self.settings_manager)
 		settings_view.background_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.bg_color = self.theme_manager.currentTheme.settingsBackgroundColour
 		settings_view.tint_color = self.theme_manager.currentTheme.tintColour
@@ -405,7 +406,8 @@ class PyDoc(object):
 if __name__ == '__main__':
 	try:
 		py = PyDoc()
-		py.navigation_view.present(hide_title_bar=True)
+		style = py.settings_manager.settings['ui_style']
+		py.navigation_view.present(hide_title_bar=True,style=style)
 	except Exception as e:
 		console.hide_activity()
 		console.alert('Error occured', str(e), 'Ok', hide_cancel_button=True)

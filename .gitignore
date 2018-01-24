@@ -2,3 +2,4 @@ Docsets/
 .themesConfig
 .version
 /.migrations.db
+/.settings
