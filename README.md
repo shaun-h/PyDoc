@@ -1,8 +1,6 @@
 # PyDoc
 PyDoc is a docset browser written in python for [Pythonista](http://omz-software.com/pythonista/). 
 
-Some change
-
 ## Getting Started
 To get started download this code to Pythonista:
 * Copy the following line in to the interactive console in pythonista and run it.
